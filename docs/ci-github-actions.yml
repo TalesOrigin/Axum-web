@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main, arena/01a038f2-axum-web]
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: axum_web
+          POSTGRES_USER: axum_web
+          POSTGRES_PASSWORD: axum_web
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U axum_web -d axum_web"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://axum_web:axum_web@localhost:5432/axum_web
+      JWT_SECRET: ci-jwt-secret-change-before-production-1234567890
+      LICENSE_KEY_PEPPER: ci-license-pepper-change-before-production-12345
+      DEVICE_ID_PEPPER: ci-device-pepper-change-before-production-12345
+      BOOTSTRAP_ADMIN_EMAIL: admin@example.com
+      BOOTSTRAP_ADMIN_PASSWORD: ChangeMe123!
+      ALLOWED_ORIGINS: http://localhost:3000
+      APP_ENV: development
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Check
+        run: cargo check --all-targets
+      - name: Clippy
+        run: cargo clippy --all-targets
+      - name: Test
+        run: cargo test --all-targets

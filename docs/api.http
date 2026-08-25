@@ -1,0 +1,83 @@
+@baseUrl = http://localhost:3000
+@adminEmail = admin@example.com
+@adminPassword = ChangeMe123!
+@token = paste-token-here
+@resellerId = paste-reseller-id-here
+@requestId = paste-request-id-here
+@licenseKey = paste-license-key-here
+
+### Health
+GET {{baseUrl}}/health/ready
+
+### Login as admin
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### Create reseller
+POST {{baseUrl}}/api/v1/admin/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "seller@example.com",
+  "password": "SellerPassword123!"
+}
+
+### Generate licenses directly as admin
+POST {{baseUrl}}/api/v1/admin/licenses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "owner_id": "{{resellerId}}",
+  "quantity": 2,
+  "max_devices": 1,
+  "ttl_days": 30,
+  "notes": "initial reseller allocation"
+}
+
+### Reseller requests keys
+POST {{baseUrl}}/api/v1/reseller/key-requests
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "quantity": 5,
+  "max_devices": 1,
+  "ttl_days": 30,
+  "note": "Need more keys for customers"
+}
+
+### Admin approves reseller request
+POST {{baseUrl}}/api/v1/admin/key-requests/{{requestId}}/approve
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "admin_note": "Approved"
+}
+
+### Verify license for a device
+POST {{baseUrl}}/api/v1/licenses/verify
+Content-Type: application/json
+
+{
+  "license_key": "{{licenseKey}}",
+  "device_id": "customer-device-001",
+  "app_id": "desktop-client",
+  "app_version": "1.0.0"
+}
+
+### Release heartbeat for a device
+POST {{baseUrl}}/api/v1/licenses/release
+Content-Type: application/json
+
+{
+  "license_key": "{{licenseKey}}",
+  "device_id": "customer-device-001"
+}

@@ -1,0 +1,11 @@
+.git
+.gitignore
+target
+.env
+.env.*
+!.env.example
+Dockerfile
+docker-compose*.yml
+.github
+k8s
+README.md
