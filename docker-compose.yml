@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: axum_web
+      POSTGRES_USER: axum_web
+      POSTGRES_PASSWORD: axum_web
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U axum_web -d axum_web"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      APP_ENV: development
+      HTTP_ADDR: 0.0.0.0:3000
+      DATABASE_URL: postgres://axum_web:axum_web@postgres:5432/axum_web
+      JWT_SECRET: dev-compose-jwt-secret-change-before-production
+      LICENSE_KEY_PEPPER: dev-compose-license-pepper-change-before-production
+      DEVICE_ID_PEPPER: dev-compose-device-pepper-change-before-production
+      BOOTSTRAP_ADMIN_EMAIL: admin@example.com
+      BOOTSTRAP_ADMIN_PASSWORD: ChangeMe123!
+      ALLOWED_ORIGINS: http://localhost:3000
+      RUN_MIGRATIONS: "true"
+      RUST_LOG: axum_web=info,tower_http=info,sqlx=warn
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/health/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:

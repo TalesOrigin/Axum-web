@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: axum-web
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: axum-web-secrets
+  namespace: axum-web
+type: Opaque
+stringData:
+  DATABASE_URL: postgres://axum_web:CHANGE_ME@postgres.example.internal:5432/axum_web
+  JWT_SECRET: CHANGE_ME_AT_LEAST_32_CHARS
+  LICENSE_KEY_PEPPER: CHANGE_ME_AT_LEAST_32_CHARS
+  DEVICE_ID_PEPPER: CHANGE_ME_AT_LEAST_32_CHARS
+  BOOTSTRAP_ADMIN_EMAIL: admin@example.com
+  BOOTSTRAP_ADMIN_PASSWORD: CHANGE_ME_LONG_ONE_TIME_PASSWORD
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: axum-web-config
+  namespace: axum-web
+data:
+  APP_ENV: production
+  HTTP_ADDR: 0.0.0.0:3000
+  PUBLIC_BASE_URL: https://licenses.example.com
+  ALLOWED_ORIGINS: https://licenses.example.com,https://admin.example.com
+  RUN_MIGRATIONS: "true"
+  LOG_FORMAT: json
+  RUST_LOG: axum_web=info,tower_http=info,sqlx=warn
+  DATABASE_MIN_CONNECTIONS: "4"
+  DATABASE_MAX_CONNECTIONS: "50"
+  ACCESS_TOKEN_TTL_MINUTES: "60"
+  LICENSE_HEARTBEAT_WINDOW_SECONDS: "600"
+  MAX_KEY_BATCH_SIZE: "100"
+  REQUEST_TIMEOUT_SECONDS: "30"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: axum-web
+  namespace: axum-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: axum-web
+  template:
+    metadata:
+      labels:
+        app: axum-web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: axum-web
+          image: ghcr.io/your-org/axum-web:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: axum-web-config
+            - secretRef:
+                name: axum-web-secrets
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: axum-web
+  namespace: axum-web
+spec:
+  type: ClusterIP
+  selector:
+    app: axum-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: axum-web
+  namespace: axum-web
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: axum-web
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
