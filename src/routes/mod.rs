@@ -11,7 +11,6 @@ use axum::{
     routing::{get, patch, post},
     Router,
 };
-use std::str::FromStr;
 use tower::ServiceBuilder;
 use tower_http::{
     compression::CompressionLayer,
