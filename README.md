@@ -193,6 +193,7 @@ Requires Rust stable and PostgreSQL 16+.
 ```bash
 cp .env.example .env
 # edit DATABASE_URL and secrets for your machine
+# make sure the database exists first — see "Database migrations" below
 cargo run
 ```
 
@@ -202,6 +203,47 @@ Useful commands:
 cargo fmt
 cargo clippy --all-targets -- -D warnings
 cargo test --all-targets
+```
+
+## Database migrations
+
+The schema lives in [`migrations/`](migrations/) and is managed by [sqlx-migrate](https://docs.rs/sqlx/latest/sqlx/migrate/index.html). Migrations apply in filename order, and the database keeps a `_sqlx_migrations` table recording which versions have already run — each migration is applied exactly once.
+
+### Running migrations
+
+Migrations run **automatically on app startup** when `RUN_MIGRATIONS=true` (the default): the first `cargo run` or container start applies all pending migrations, bootstraps the admin user, and only then starts serving HTTP.
+
+The one manual prerequisite is that the **database itself exists** — PostgreSQL never creates databases on demand. Create the role and database once before the first run:
+
+```bash
+psql -h localhost -U postgres -c "CREATE ROLE axum_web LOGIN PASSWORD '<your-password>';"
+psql -h localhost -U postgres -c "CREATE DATABASE axum_web OWNER axum_web;"
+```
+
+`docker compose up` does this for you via `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD`.
+
+> **Note:** in `DATABASE_URL` the password is part of a URI, so special characters must be percent-encoded (e.g. `@` → `%40`, `#` → `%23`, `*` → `%2A`). In `psql`/SQL statements you write the password plain, as-is.
+
+You can also apply migrations explicitly, without starting the server:
+
+```bash
+cargo install sqlx-cli
+export DATABASE_URL='postgres://axum_web:<url-percent-encoded-password>@localhost:5432/axum_web'
+sqlx migrate run      # apply pending migrations
+sqlx migrate info     # show which versions are applied
+```
+
+### Adding a new migration
+
+1. Create the next numbered file, e.g. `migrations/0002_add_something.sql`. Migrations apply in filename order. Never edit a file that has already been applied — add a new one instead (the checksum is stored in `_sqlx_migrations`).
+2. **Rebuild.** `sqlx::migrate!` in `src/main.rs` embeds the `migrations/` directory into the binary at *compile time*, so a new or changed file has no effect until you run `cargo build` / rebuild the Docker image.
+3. Start the app (or run `sqlx migrate run`) to apply it.
+
+Verify after startup:
+
+```bash
+psql -h localhost -U axum_web -d axum_web -c "\dt"
+psql -h localhost -U axum_web -d axum_web -c "SELECT version, description, success FROM _sqlx_migrations ORDER BY version;"
 ```
 
 ## Repository layout

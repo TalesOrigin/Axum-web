@@ -4,7 +4,10 @@ services:
     environment:
       POSTGRES_DB: axum_web
       POSTGRES_USER: axum_web
-      POSTGRES_PASSWORD: axum_web
+      # Local dev password (plain form). If the postgres_data volume already
+      # exists from an older run, update it in the DB instead:
+      #   ALTER USER axum_web WITH PASSWORD '@F9*a8#r6';
+      POSTGRES_PASSWORD: "@F9*a8#r6"
     ports:
       - "5432:5432"
     volumes:
@@ -25,7 +28,8 @@ services:
     environment:
       APP_ENV: development
       HTTP_ADDR: 0.0.0.0:3000
-      DATABASE_URL: postgres://axum_web:axum_web@postgres:5432/axum_web
+      # Password @F9*a8#r6, percent-encoded: @ -> %40, * -> %2A, # -> %23
+      DATABASE_URL: postgres://axum_web:%40F9%2Aa8%23r6@postgres:5432/axum_web
       JWT_SECRET: dev-compose-jwt-secret-change-before-production
       LICENSE_KEY_PEPPER: dev-compose-license-pepper-change-before-production
       DEVICE_ID_PEPPER: dev-compose-device-pepper-change-before-production
