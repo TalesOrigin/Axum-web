@@ -4,7 +4,7 @@ Enterprise-grade Rust/Axum licensing platform for administrators, resellers, lic
 
 ## What this system provides
 
-- **Main administrator panel/API** for creating resellers, generating keys, assigning keys, approving/rejecting reseller key requests, and suspending/revoking users or keys.
+- **Main administrator panel/API** for creating resellers or admins, generating keys, assigning keys, approving/rejecting reseller key requests, banning/deleting users, and suspending/revoking users or keys.
 - **Reseller panel/API** so sellers can log in, request key batches from the main admin, list assigned keys, and manage the lifecycle of their own keys.
 - **Licensing verification system** that verifies license keys with a unique device ID, tracks expiry, and enforces the maximum number of simultaneously active devices per key.
 - **Secure transport posture** with JWT authentication, Argon2 password hashing, HMAC-hashed license/device identifiers at rest, CORS allowlisting, security headers, request-size limits, timeouts, and audit logs.
@@ -98,7 +98,10 @@ Content-Type: application/json
 
 Use the returned token as `Authorization: Bearer <token>`.
 
-### 2. Admin creates reseller
+### 2. Admin creates a user
+
+Admins can create either a reseller/seller account or another administrator.
+The `role` field accepts `reseller` or `admin` and defaults to `reseller` for backward compatibility.
 
 ```http
 POST /api/v1/admin/users
@@ -107,7 +110,9 @@ Content-Type: application/json
 
 {
   "email": "seller@example.com",
-  "password": "SellerPassword123!"
+  "password": "SellerPassword123!",
+  "role": "reseller",
+  "is_active": true
 }
 ```
 
@@ -174,8 +179,10 @@ Content-Type: application/json
 | `GET` | `/health/ready` | none | DB readiness probe. |
 | `POST` | `/api/v1/auth/login` | none | Login with email/password. |
 | `GET` | `/api/v1/auth/me` | user | Current authenticated user. |
-| `GET/POST` | `/api/v1/admin/users` | admin | List users / create reseller. |
-| `PATCH` | `/api/v1/admin/users/{id}/status` | admin | Activate/deactivate a user. |
+| `GET/POST` | `/api/v1/admin/users` | admin | List users / create reseller or admin. |
+| `DELETE` | `/api/v1/admin/users/{id}` | admin | Delete a user; active owned keys are suspended before the account is removed. |
+| `PATCH` | `/api/v1/admin/users/{id}/status` | admin | Activate/deactivate (ban/unban) a user. |
+| `PATCH` | `/api/v1/admin/users/{id}/licenses/status` | admin | Bulk pause/resume/revoke license keys owned by a user. |
 | `GET/POST` | `/api/v1/admin/licenses` | admin | List/generate licenses. |
 | `PATCH` | `/api/v1/admin/licenses/{id}/status` | admin | Active/suspend/revoke a license. |
 | `GET` | `/api/v1/admin/key-requests` | admin | List reseller requests. |

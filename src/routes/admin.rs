@@ -32,11 +32,12 @@ pub struct ListUsersQuery {
 }
 
 #[derive(Debug, Deserialize, Validate)]
-pub struct CreateResellerRequest {
+pub struct CreateUserRequest {
     #[validate(email)]
     pub email: String,
     #[validate(length(min = 12, max = 256))]
     pub password: String,
+    pub role: Option<String>,
     pub is_active: Option<bool>,
 }
 
@@ -89,6 +90,20 @@ pub struct SetLicenseStatusRequest {
     pub status: String,
 }
 
+#[derive(Debug, Serialize)]
+pub struct BulkUserLicenseStatusResponse {
+    pub owner_id: Uuid,
+    pub status: String,
+    pub updated_count: u64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DeletedUserResponse {
+    pub deleted: bool,
+    pub user: PublicUser,
+    pub suspended_key_count: u64,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct ListKeyRequestsQuery {
     pub status: Option<String>,
@@ -110,9 +125,11 @@ pub async fn list_users(
     let user = security::require_user(&state, &headers).await?;
     security::require_admin(&user)?;
 
-    if let Some(role) = &query.role {
-        validate_role(role)?;
-    }
+    let role = query
+        .role
+        .as_deref()
+        .map(|role| normalize_role(Some(role)))
+        .transpose()?;
 
     let users = sqlx::query_as::<_, User>(
         r#"
@@ -130,7 +147,7 @@ pub async fn list_users(
         LIMIT $2 OFFSET $3
         "#,
     )
-    .bind(query.role.clone())
+    .bind(role)
     .bind(query.pagination.limit())
     .bind(query.pagination.offset())
     .fetch_all(&state.pool)
@@ -139,19 +156,20 @@ pub async fn list_users(
     Ok(Json(users.into_iter().map(Into::into).collect()))
 }
 
-pub async fn create_reseller(
+pub async fn create_user(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Json(payload): Json<CreateResellerRequest>,
+    Json(payload): Json<CreateUserRequest>,
 ) -> AppResult<Json<PublicUser>> {
     payload.validate()?;
     let admin = security::require_user(&state, &headers).await?;
     security::require_admin(&admin)?;
 
+    let role = normalize_role(payload.role.as_deref())?;
     let password_hash = hash_password(&payload.password).map_err(AppError::Internal)?;
-    let reseller_id = Uuid::new_v4();
+    let user_id = Uuid::new_v4();
     let id = state.config.uuid_cast("$1");
-    let reseller = sqlx::query_as::<_, User>(&format!(
+    let created_user = sqlx::query_as::<_, User>(&format!(
         r#"
         INSERT INTO users (id, email, password_hash, role, is_active)
         VALUES ({id}, $2, $3, $4, $5)
@@ -165,10 +183,10 @@ pub async fn create_reseller(
             CAST(updated_at AS TEXT) AS updated_at
         "#,
     ))
-    .bind(reseller_id.to_string())
+    .bind(user_id.to_string())
     .bind(payload.email.trim().to_ascii_lowercase())
     .bind(password_hash)
-    .bind(ROLE_RESELLER)
+    .bind(role.as_str())
     .bind(payload.is_active.unwrap_or(true))
     .fetch_one(&state.pool)
     .await?;
@@ -177,17 +195,17 @@ pub async fn create_reseller(
         &state.pool,
         &state.config,
         Some(admin.id),
-        Some(reseller.id),
+        Some(created_user.id),
         None,
         None,
-        "admin.reseller.created",
+        "admin.user.created",
         security::client_ip(&headers),
         security::user_agent(&headers),
-        json!({"email": reseller.email.clone()}),
+        json!({"email": created_user.email.clone(), "role": created_user.role.clone()}),
     )
     .await;
 
-    Ok(Json(reseller.into()))
+    Ok(Json(created_user.into()))
 }
 
 pub async fn set_user_status(
@@ -241,6 +259,137 @@ pub async fn set_user_status(
     .await;
 
     Ok(Json(user.into()))
+}
+
+pub async fn set_user_license_status(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<Uuid>,
+    Json(payload): Json<SetLicenseStatusRequest>,
+) -> AppResult<Json<BulkUserLicenseStatusResponse>> {
+    let admin = security::require_user(&state, &headers).await?;
+    security::require_admin(&admin)?;
+    validate_license_status(&payload.status)?;
+
+    let target = fetch_user_by_id(&state, id).await?;
+    let owner_id = state.config.uuid_cast("$1");
+    let status_filter = match payload.status.as_str() {
+        // Resuming a seller only re-activates keys that are currently paused.
+        // Revoked keys stay revoked unless an admin changes each one explicitly.
+        LICENSE_ACTIVE => "AND status = 'suspended'",
+        LICENSE_SUSPENDED => "AND status = 'active'",
+        LICENSE_REVOKED => "AND status <> 'revoked'",
+        _ => unreachable!("license status was already validated"),
+    };
+    let result = sqlx::query(&format!(
+        r#"
+        UPDATE license_keys
+        SET status = $2
+        WHERE owner_id = {owner_id}
+          {status_filter}
+        "#,
+    ))
+    .bind(id.to_string())
+    .bind(payload.status.as_str())
+    .execute(&state.pool)
+    .await?;
+
+    let updated_count = result.rows_affected();
+    let _ = db::audit_event(
+        &state.pool,
+        &state.config,
+        Some(admin.id),
+        Some(target.id),
+        None,
+        None,
+        "admin.user.licenses.status_changed",
+        security::client_ip(&headers),
+        security::user_agent(&headers),
+        json!({
+            "email": target.email.clone(),
+            "role": target.role.clone(),
+            "status": payload.status.clone(),
+            "updated_count": updated_count,
+        }),
+    )
+    .await;
+
+    Ok(Json(BulkUserLicenseStatusResponse {
+        owner_id: id,
+        status: payload.status,
+        updated_count,
+    }))
+}
+
+pub async fn delete_user(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<DeletedUserResponse>> {
+    let admin = security::require_user(&state, &headers).await?;
+    security::require_admin(&admin)?;
+
+    if admin.id == id {
+        return Err(AppError::BadRequest(
+            "administrators cannot delete themselves".to_string(),
+        ));
+    }
+
+    let target = fetch_user_by_id(&state, id).await?;
+    let public_user: PublicUser = target.clone().into();
+
+    let mut tx = state.pool.begin().await?;
+    let owner_id = state.config.uuid_cast("$1");
+    let suspended = sqlx::query(&format!(
+        r#"
+        UPDATE license_keys
+        SET status = $2
+        WHERE owner_id = {owner_id}
+          AND status = $3
+        "#,
+    ))
+    .bind(id.to_string())
+    .bind(LICENSE_SUSPENDED)
+    .bind(LICENSE_ACTIVE)
+    .execute(&mut *tx)
+    .await?;
+    let suspended_key_count = suspended.rows_affected();
+
+    let user_id = state.config.uuid_cast("$1");
+    let deleted = sqlx::query(&format!("DELETE FROM users WHERE id = {user_id}"))
+        .bind(id.to_string())
+        .execute(&mut *tx)
+        .await?;
+    if deleted.rows_affected() == 0 {
+        return Err(AppError::NotFound("user not found".to_string()));
+    }
+
+    tx.commit().await?;
+
+    let _ = db::audit_event(
+        &state.pool,
+        &state.config,
+        Some(admin.id),
+        None,
+        None,
+        None,
+        "admin.user.deleted",
+        security::client_ip(&headers),
+        security::user_agent(&headers),
+        json!({
+            "deleted_user_id": id,
+            "email": target.email.clone(),
+            "role": target.role.clone(),
+            "suspended_key_count": suspended_key_count,
+        }),
+    )
+    .await;
+
+    Ok(Json(DeletedUserResponse {
+        deleted: true,
+        user: public_user,
+        suspended_key_count,
+    }))
 }
 
 pub async fn list_licenses(
@@ -788,6 +937,39 @@ async fn create_licenses_for_owner(
 
     tx.commit().await?;
     Ok(generated)
+}
+
+async fn fetch_user_by_id(state: &AppState, id: Uuid) -> AppResult<User> {
+    let user_id = state.config.uuid_cast("$1");
+    let user = sqlx::query_as::<_, User>(&format!(
+        r#"
+        SELECT
+            CAST(id AS TEXT) AS id,
+            email,
+            password_hash,
+            role,
+            is_active,
+            CAST(created_at AS TEXT) AS created_at,
+            CAST(updated_at AS TEXT) AS updated_at
+        FROM users
+        WHERE id = {user_id}
+        "#,
+    ))
+    .bind(id.to_string())
+    .fetch_optional(&state.pool)
+    .await?
+    .ok_or_else(|| AppError::NotFound("user not found".to_string()))?;
+
+    Ok(user)
+}
+
+fn normalize_role(role: Option<&str>) -> AppResult<String> {
+    let role = role
+        .unwrap_or(ROLE_RESELLER)
+        .trim()
+        .to_ascii_lowercase();
+    validate_role(&role)?;
+    Ok(role)
 }
 
 fn validate_role(role: &str) -> AppResult<()> {

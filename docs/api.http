@@ -18,15 +18,40 @@ Content-Type: application/json
   "password": "{{adminPassword}}"
 }
 
-### Create reseller
+### Create reseller or admin
 POST {{baseUrl}}/api/v1/admin/users
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
   "email": "seller@example.com",
-  "password": "SellerPassword123!"
+  "password": "SellerPassword123!",
+  "role": "reseller",
+  "is_active": true
 }
+
+### Ban seller / deactivate user
+PATCH {{baseUrl}}/api/v1/admin/users/{{resellerId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "is_active": false
+}
+
+### Pause all active keys owned by seller
+PATCH {{baseUrl}}/api/v1/admin/users/{{resellerId}}/licenses/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "suspended"
+}
+
+### Delete seller / user
+DELETE {{baseUrl}}/api/v1/admin/users/{{resellerId}}
+Authorization: Bearer {{token}}
+
 
 ### Generate licenses directly as admin
 POST {{baseUrl}}/api/v1/admin/licenses
