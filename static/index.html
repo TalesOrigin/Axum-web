@@ -3,149 +3,48 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Axum-web Enterprise Licensing</title>
+  <title>Axum | Enterprise Control Plane</title>
   <style>
-    :root { color-scheme: dark; --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb; --brand:#38bdf8; --danger:#fb7185; --ok:#34d399; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at top left,#1e3a8a 0,#0f172a 34rem); color:var(--text); }
-    header { padding:2.2rem clamp(1rem,4vw,4rem); border-bottom:1px solid rgba(148,163,184,.2); }
-    h1 { margin:.1rem 0 .5rem; font-size:clamp(2rem,5vw,4rem); letter-spacing:-.05em; }
-    h2 { margin-top:0; }
-    p { color:var(--muted); line-height:1.6; }
-    main { display:grid; gap:1.2rem; padding:1.2rem clamp(1rem,4vw,4rem) 4rem; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); }
-    section { background:rgba(17,24,39,.88); border:1px solid rgba(148,163,184,.22); border-radius:20px; padding:1.2rem; box-shadow:0 20px 50px rgba(0,0,0,.25); }
-    label { display:block; margin:.75rem 0 .35rem; color:#cbd5e1; font-weight:700; font-size:.88rem; }
-    input, textarea, select { width:100%; border:1px solid rgba(148,163,184,.3); border-radius:12px; padding:.8rem .9rem; color:var(--text); background:#020617; outline:none; }
-    textarea { min-height:5rem; resize:vertical; }
-    button { border:0; border-radius:12px; padding:.75rem 1rem; margin:.8rem .4rem .2rem 0; font-weight:800; color:#00111f; background:linear-gradient(135deg,#67e8f9,#38bdf8); cursor:pointer; }
-    button.secondary { color:var(--text); background:#1f2937; border:1px solid rgba(148,163,184,.3); }
-    button.danger { color:#22030a; background:linear-gradient(135deg,#fda4af,#fb7185); }
-    pre { overflow:auto; white-space:pre-wrap; background:#020617; border-radius:14px; border:1px solid rgba(148,163,184,.18); padding:1rem; color:#d1fae5; min-height:4rem; }
-    .full { grid-column:1/-1; }
-    .pill { display:inline-flex; align-items:center; gap:.35rem; padding:.3rem .55rem; border:1px solid rgba(56,189,248,.35); background:rgba(56,189,248,.08); color:#bae6fd; border-radius:999px; font-size:.8rem; font-weight:800; }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
-    @media (max-width:700px) { .grid { grid-template-columns:1fr; } }
+    :root{--ink:#172033;--muted:#6f7b91;--line:#e6eaf0;--surface:#fff;--canvas:#f5f7fb;--navy:#101c35;--blue:#315efb;--blue-soft:#eef2ff;--green:#159570;--green-soft:#e8f8f1;--amber:#b97812;--amber-soft:#fff7e7;--red:#cf4b5f;--red-soft:#fff0f2;--shadow:0 10px 35px rgba(28,44,77,.06)}
+    *{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:14px Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+    .login-shell{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#f5f7fb 0%,#eef2ff 100%)}.login-card{width:min(100%,470px);background:#fff;border:1px solid var(--line);border-radius:18px;padding:38px;box-shadow:0 24px 70px #31436d1c}.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.03em;font-size:19px}.brand-mark{height:34px;width:34px;border-radius:10px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900}.login-card h1{font-size:28px;letter-spacing:-.04em;margin:38px 0 8px}.subtle{color:var(--muted);line-height:1.55}.portal-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:24px 0}.portal-option{border:1px solid var(--line);background:#fff;border-radius:10px;text-align:left;padding:13px;color:var(--muted)}.portal-option strong{display:block;color:var(--ink);margin-bottom:4px}.portal-option.active{border-color:var(--blue);background:var(--blue-soft);box-shadow:inset 0 0 0 1px var(--blue)}label{display:block;font-size:12px;font-weight:700;color:#536077;margin:17px 0 7px}input,select,textarea{width:100%;border:1px solid #dce2eb;border-radius:8px;background:#fff;color:var(--ink);padding:11px 12px;outline:none}input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb14}.primary{border:0;background:var(--blue);color:#fff;border-radius:8px;padding:11px 15px;font-weight:700}.wide{width:100%;margin-top:22px}.error{color:var(--red);font-size:13px;margin-top:12px}.demo-note{font-size:12px;margin-top:24px;padding:11px;background:#f8fafc;border-radius:8px;color:var(--muted)}
+    .app{min-height:100vh;display:flex}.sidebar{width:244px;background:var(--navy);color:#d8e0f0;display:flex;flex-direction:column;padding:25px 14px;flex-shrink:0}.sidebar .brand{color:#fff;padding:0 12px 30px}.sidebar .brand-mark{background:#456cff}.portal-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8090af;font-weight:800;padding:0 12px 12px}.nav{display:grid;gap:4px}.nav button{background:none;border:0;color:#aebbd2;padding:11px 12px;border-radius:8px;text-align:left;display:flex;align-items:center;gap:11px}.nav button:hover,.nav button.active{background:#ffffff12;color:#fff}.nav button.active{box-shadow:inset 3px 0 var(--blue)}.nav svg{width:17px;height:17px;opacity:.85}.sidebar-bottom{margin-top:auto;border-top:1px solid #ffffff14;padding:16px 12px 0}.profile{font-size:12px;color:#bdc8da;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.logout{width:100%;margin-top:14px;background:#ffffff12;border:1px solid #ffffff18;color:#dbe3f1;padding:9px;border-radius:7px}.main{min-width:0;flex:1}.topbar{height:74px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,48px)}.crumb{font-size:13px;color:var(--muted)}.crumb strong{color:var(--ink);font-size:15px;margin-right:12px}.top-actions{display:flex;align-items:center;gap:14px}.role-badge{font-size:11px;padding:6px 9px;border-radius:20px;background:var(--blue-soft);color:var(--blue);font-weight:800}.avatar{width:33px;height:33px;border-radius:50%;display:grid;place-items:center;background:#dce5ff;color:var(--blue);font-weight:800}.content{padding:30px clamp(20px,4vw,48px);max-width:1500px}.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:25px}.page-head h1{font-size:25px;letter-spacing:-.04em;margin:0 0 6px}.page-head p{margin:0;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:22px}.card,.panel{background:var(--surface);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow)}.stat{padding:19px}.stat-top{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;font-weight:700}.stat-icon{color:var(--blue);background:var(--blue-soft);border-radius:7px;padding:7px}.stat-value{font-size:28px;font-weight:800;letter-spacing:-.04em;margin:15px 0 5px}.stat-note{font-size:11px;color:var(--muted)}.panel{overflow:hidden;margin-bottom:20px}.panel-head{display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:15px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:13px 20px;border-bottom:1px solid #eef1f5;white-space:nowrap}th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8a95a8;background:#fbfcfe}td{font-size:13px}tr:last-child td{border-bottom:0}.key{font-family:ui-monospace,SFMono-Regular,monospace;color:#354256;font-size:12px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:5px 9px;font-size:11px;font-weight:800}.status:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}.active,.approved{color:var(--green);background:var(--green-soft)}.pending{color:var(--amber);background:var(--amber-soft)}.revoked,.rejected{color:var(--red);background:var(--red-soft)}.empty{padding:35px 20px;text-align:center;color:var(--muted)}.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:20px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}.form-panel{padding:20px}.form-panel h2{margin:0 0 4px;font-size:16px}.form-panel .primary{margin-top:20px}.secondary{border:1px solid var(--line);background:#fff;color:#4e5b72;border-radius:7px;padding:8px 12px;font-weight:700}.danger{border:0;background:var(--red-soft);color:var(--red);border-radius:7px;padding:8px 12px;font-weight:700}.toolbar{display:flex;gap:8px;align-items:center}.toolbar select{width:auto;padding:8px}.notice{padding:14px 17px;background:#f8faff;border:1px solid #dfe6ff;border-radius:9px;color:#55627a;font-size:13px;margin-bottom:20px}.usage{padding:20px}.usage-row{margin:20px 0}.usage-line{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:8px}.bar{height:8px;background:#edf0f5;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue);border-radius:9px}.toast{position:fixed;right:24px;bottom:24px;background:var(--navy);color:#fff;padding:13px 17px;border-radius:8px;box-shadow:var(--shadow);z-index:5}
+    @media(max-width:900px){.sidebar{width:205px}.cards{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}}@media(max-width:620px){.app{display:block}.sidebar{width:100%;padding:14px;min-height:auto}.sidebar .brand{padding:0 5px 15px}.portal-label{display:none}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap}.sidebar-bottom{display:none}.topbar{padding:0 16px}.content{padding:22px 15px}.cards{grid-template-columns:1fr 1fr}.page-head{display:block}.page-head .primary{margin-top:15px}.login-card{padding:26px}.form-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <header>
-    <span class="pill">Production-ready Rust + Axum licensing platform</span>
-    <h1>Axum-web Enterprise Licensing</h1>
-    <p>Main administrators manage resellers, approve key requests, generate licenses, and monitor device-limited verification. Resellers manage keys assigned to them.</p>
-  </header>
-
-  <main>
-    <section>
-      <h2>Sign in</h2>
-      <p>Development bootstrap defaults are <code>admin@example.com</code> and <code>ChangeMe123!</code> unless environment variables override them.</p>
-      <label>Email</label><input id="login-email" value="admin@example.com" />
-      <label>Password</label><input id="login-password" type="password" value="ChangeMe123!" />
-      <button onclick="login()">Login</button>
-      <button class="secondary" onclick="me()">Who am I?</button>
-      <pre id="auth-output"></pre>
-    </section>
-
-    <section>
-      <h2>Admin: create reseller</h2>
-      <label>Reseller email</label><input id="reseller-email" placeholder="seller@example.com" />
-      <label>Temporary password</label><input id="reseller-password" type="password" placeholder="At least 12 characters" />
-      <button onclick="createReseller()">Create reseller</button>
-      <button class="secondary" onclick="listUsers()">List users</button>
-      <pre id="users-output"></pre>
-    </section>
-
-    <section>
-      <h2>Admin: generate keys</h2>
-      <div class="grid">
-        <div><label>Owner user ID (optional)</label><input id="license-owner" /></div>
-        <div><label>Quantity</label><input id="license-quantity" type="number" value="1" /></div>
-        <div><label>Max devices</label><input id="license-devices" type="number" value="1" /></div>
-        <div><label>TTL days</label><input id="license-ttl" type="number" value="30" /></div>
-      </div>
-      <label>Notes</label><textarea id="license-notes"></textarea>
-      <button onclick="generateLicenses()">Generate</button>
-      <button class="secondary" onclick="listLicenses('/api/v1/admin/licenses','licenses-output')">List all licenses</button>
-      <pre id="licenses-output"></pre>
-    </section>
-
-    <section>
-      <h2>Reseller: request keys</h2>
-      <div class="grid">
-        <div><label>Quantity</label><input id="request-quantity" type="number" value="5" /></div>
-        <div><label>Max devices</label><input id="request-devices" type="number" value="1" /></div>
-        <div><label>TTL days</label><input id="request-ttl" type="number" value="30" /></div>
-      </div>
-      <label>Request note</label><textarea id="request-note"></textarea>
-      <button onclick="createKeyRequest()">Submit request</button>
-      <button class="secondary" onclick="myRequests()">My requests</button>
-      <button class="secondary" onclick="listLicenses('/api/v1/reseller/licenses','reseller-output')">My licenses</button>
-      <pre id="reseller-output"></pre>
-    </section>
-
-    <section class="full">
-      <h2>Admin: review reseller key requests</h2>
-      <button class="secondary" onclick="adminRequests()">List pending requests</button>
-      <label>Request ID</label><input id="review-id" />
-      <label>Admin note</label><input id="review-note" />
-      <button onclick="approveRequest()">Approve</button>
-      <button class="danger" onclick="rejectRequest()">Reject</button>
-      <pre id="requests-output"></pre>
-    </section>
-
-    <section class="full">
-      <h2>Public license verification</h2>
-      <p>Clients call this endpoint with a license key and unique device ID. The service tracks expiry, active heartbeat window, and simultaneous device limits.</p>
-      <div class="grid">
-        <div><label>License key</label><input id="verify-key" /></div>
-        <div><label>Device ID</label><input id="verify-device" value="demo-device-001" /></div>
-        <div><label>App ID</label><input id="verify-app" value="demo-app" /></div>
-        <div><label>Version</label><input id="verify-version" value="1.0.0" /></div>
-      </div>
-      <button onclick="verifyLicense()">Verify</button>
-      <button class="secondary" onclick="releaseLicense()">Release heartbeat</button>
-      <pre id="verify-output"></pre>
-    </section>
-  </main>
-
-  <script>
-    const $ = (id) => document.getElementById(id);
-    const tokenKey = 'axum_web_token';
-    const out = (id, data) => $(id).textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-    const authHeaders = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem(tokenKey) || ''}` });
-
-    async function api(path, options = {}) {
-      const res = await fetch(path, options);
-      const text = await res.text();
-      const body = text ? JSON.parse(text) : null;
-      if (!res.ok) throw body;
-      return body;
-    }
-
-    async function safe(outputId, fn) { try { out(outputId, await fn()); } catch (e) { out(outputId, e); } }
-
-    function login() { safe('auth-output', async () => {
-      const body = { email: $('login-email').value, password: $('login-password').value };
-      const data = await api('/api/v1/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-      localStorage.setItem(tokenKey, data.access_token);
-      return data;
-    }); }
-
-    function me() { safe('auth-output', () => api('/api/v1/auth/me', { headers: authHeaders() })); }
-    function listUsers() { safe('users-output', () => api('/api/v1/admin/users', { headers: authHeaders() })); }
-    function createReseller() { safe('users-output', () => api('/api/v1/admin/users', { method:'POST', headers:authHeaders(), body:JSON.stringify({ email:$('reseller-email').value, password:$('reseller-password').value }) })); }
-
-    function generateLicenses() { safe('licenses-output', () => api('/api/v1/admin/licenses', { method:'POST', headers:authHeaders(), body:JSON.stringify({ owner_id:$('license-owner').value || null, quantity:Number($('license-quantity').value), max_devices:Number($('license-devices').value), ttl_days:Number($('license-ttl').value), notes:$('license-notes').value || null }) })); }
-    function listLicenses(path, output) { safe(output, () => api(path, { headers: authHeaders() })); }
-
-    function createKeyRequest() { safe('reseller-output', () => api('/api/v1/reseller/key-requests', { method:'POST', headers:authHeaders(), body:JSON.stringify({ quantity:Number($('request-quantity').value), max_devices:Number($('request-devices').value), ttl_days:Number($('request-ttl').value), note:$('request-note').value || null }) })); }
-    function myRequests() { safe('reseller-output', () => api('/api/v1/reseller/key-requests', { headers: authHeaders() })); }
-
-    function adminRequests() { safe('requests-output', () => api('/api/v1/admin/key-requests?status=pending', { headers: authHeaders() })); }
-    function approveRequest() { safe('requests-output', () => api(`/api/v1/admin/key-requests/${$('review-id').value}/approve`, { method:'POST', headers:authHeaders(), body:JSON.stringify({ admin_note:$('review-note').value || null }) })); }
-    function rejectRequest() { safe('requests-output', () => api(`/api/v1/admin/key-requests/${$('review-id').value}/reject`, { method:'POST', headers:authHeaders(), body:JSON.stringify({ admin_note:$('review-note').value || null }) })); }
-
-    function verifyLicense() { safe('verify-output', () => api('/api/v1/licenses/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ license_key:$('verify-key').value, device_id:$('verify-device').value, app_id:$('verify-app').value, app_version:$('verify-version').value }) })); }
-    function releaseLicense() { safe('verify-output', () => api('/api/v1/licenses/release', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ license_key:$('verify-key').value, device_id:$('verify-device').value }) })); }
-  </script>
-</body>
-</html>
+  <div id="login" class="login-shell"><div class="login-card">
+    <div class="brand"><span class="brand-mark">A</span> Axum <span style="color:#9aa6b9;font-weight:600">CONTROL PLANE</span></div>
+    <h1>Welcome back</h1><p class="subtle">Sign in to manage your licensing operations, customers, and key activity.</p>
+    <div class="portal-picker"><button class="portal-option active" data-role="admin" onclick="choosePortal('admin')"><strong>Admin portal</strong>Platform operations</button><button class="portal-option" data-role="reseller" onclick="choosePortal('reseller')"><strong>Reseller portal</strong>Partner workspace</button></div>
+    <label>Work email</label><input id="email" value="admin@example.com" autocomplete="username"><label>Password</label><input id="password" type="password" value="ChangeMe123!" autocomplete="current-password"><button class="primary wide" onclick="login()">Sign in to portal</button><div id="login-error" class="error"></div><div class="demo-note">Development access: <b>admin@example.com</b> / <b>ChangeMe123!</b></div>
+  </div></div>
+  <div id="app" class="app hidden"><aside class="sidebar"><div class="brand"><span class="brand-mark">A</span> Axum</div><div class="portal-label" id="portal-label">Admin portal</div><nav id="nav" class="nav"></nav><div class="sidebar-bottom"><div class="profile" id="profile"></div><button class="logout" onclick="logout()">Sign out</button></div></aside><div class="main"><header class="topbar"><div class="crumb"><strong id="top-title">Overview</strong><span id="top-context">Workspace</span></div><div class="top-actions"><span class="role-badge" id="role-badge">ADMIN</span><span class="avatar" id="avatar">A</span></div></header><main id="content" class="content"></main></div></div><div id="toast" class="toast hidden"></div>
+<script>
+const $=id=>document.getElementById(id), tokenKey='axum_web_token'; let portal='admin', user=null, cache={licenses:[],requests:[],users:[]};
+const icons={overview:'▦',licenses:'▣',partners:'♙',requests:'◷',verify:'✓',usage:'◒'};
+function choosePortal(v){portal=v;document.querySelectorAll('.portal-option').forEach(x=>x.classList.toggle('active',x.dataset.role===v));$('email').value=v==='admin'?'admin@example.com':''}
+function auth(){return {'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem(tokenKey)||''}`}}
+async function api(path,opt={}){let r=await fetch(path,opt),t=await r.text(),b=t?JSON.parse(t):null;if(!r.ok)throw b||{message:r.statusText};return b}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),2800)}
+async function login(){try{let d=await api('/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('email').value,password:$('password').value})});localStorage.setItem(tokenKey,d.access_token);user=await api('/api/v1/auth/me',{headers:auth()});if(user.role!==portal){throw {message:`This account is not a ${portal} account.`}};start()}catch(e){$('login-error').textContent=e.message||e.error||'Unable to sign in.'}}
+function logout(){localStorage.removeItem(tokenKey);$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+function start(){ $('login').classList.add('hidden');$('app').classList.remove('hidden');$('portal-label').textContent=portal==='admin'?'Admin portal':'Reseller portal';$('role-badge').textContent=portal.toUpperCase();$('profile').textContent=user.email;$('avatar').textContent=user.email[0].toUpperCase();buildNav();go('overview');load().then(()=>go('overview')) }
+function buildNav(){let items=portal==='admin'?[['overview','Overview'],['licenses','License keys'],['partners','Partners'],['requests','Key requests'],['verify','Verification']]:[['overview','Overview'],['licenses','My license keys'],['requests','Requests'],['usage','Usage & activity']];$('nav').innerHTML=items.map(([id,label])=>`<button data-page="${id}" onclick="go('${id}')"><span style="font-size:18px;width:18px;text-align:center">${icons[id]}</span>${label}</button>`).join('')}
+async function load(){try{if(portal==='admin'){cache.licenses=await api('/api/v1/admin/licenses',{headers:auth()});cache.requests=await api('/api/v1/admin/key-requests?status=pending',{headers:auth()});cache.users=await api('/api/v1/admin/users?role=reseller',{headers:auth()})}else{cache.licenses=await api('/api/v1/reseller/licenses',{headers:auth()});cache.requests=await api('/api/v1/reseller/key-requests',{headers:auth()})}}catch(e){toast(e.message||'Could not load workspace')}}
+function go(page){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('top-title').textContent=page==='overview'?'Overview':page==='licenses'?(portal==='admin'?'License keys':'My license keys'):page[0].toUpperCase()+page.slice(1);$('top-context').textContent=portal==='admin'?'Admin workspace':'Partner workspace';render(page)}
+function status(s){return `<span class="status ${s||'pending'}">${s||'pending'}</span>`}function date(s){return s?new Date(s).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'—'}function key(k){return `<span class="key">${k||'—'}</span>`}function table(headers,rows,empty='No records found'){return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${headers.length}" class="empty">${empty}</td></tr>`}</tbody></table></div>`}
+function stat(label,value,note,icon='◈'){return `<div class="card stat"><div class="stat-top"><span>${label}</span><span class="stat-icon">${icon}</span></div><div class="stat-value">${value}</div><div class="stat-note">${note}</div></div>`}
+function shell(title,desc,body,action=''){return `<div class="page-head"><div><h1>${title}</h1><p>${desc}</p></div>${action}</div>${body}`}
+function render(page){let c;if(page==='overview')c=overview();if(page==='licenses')c=licenses();if(page==='partners')c=partners();if(page==='requests')c=requests();if(page==='verify')c=verify();if(page==='usage')c=usage();$('content').innerHTML=c}
+function overview(){let l=cache.licenses,r=cache.requests,active=l.filter(x=>x.status==='active').length,devices=l.reduce((n,x)=>n+Number(x.active_devices||0),0);return shell('Good afternoon','A clear view of your licensing operation.',`<div class="cards">${stat('Total license keys',l.length,'Across all workspaces','▣')}${stat('Active keys',active,`${l.length?Math.round(active/l.length*100):0}% of inventory`,'✓')}${stat('Active devices',devices,'Currently verifying','◉')}${stat(portal==='admin'?'Pending requests':'Open requests',r.filter(x=>x.status==='pending').length,'Needs attention','◷')}</div><div class="grid-2"><div class="panel"><div class="panel-head"><h2>Recent license activity</h2><button class="secondary" onclick="go('licenses')">View all</button></div>${table(['Key','Owner','Status','Devices','Expires'],l.slice(0,5).map(x=>`<tr><td>${key(x.key_prefix)}</td><td>${x.owner_email||'Unassigned'}</td><td>${status(x.status)}</td><td>${x.active_devices||0} / ${x.max_devices}</td><td>${date(x.expires_at)}</td></tr>`),'Your license inventory will appear here.')}</div><div class="panel"><div class="panel-head"><h2>${portal==='admin'?'Requests to review':'Request history'}</h2><button class="secondary" onclick="go('requests')">Open</button></div>${table(['Request','Quantity','Status'],r.slice(0,5).map(x=>`<tr><td>#${String(x.id||'').slice(0,8)}</td><td>${x.quantity||'—'} keys</td><td>${status(x.status)}</td></tr>`),'No open requests.')}</div></div>`)}
+function licenses(){let rows=cache.licenses.map(x=>`<tr><td>${key(x.key_prefix)}</td><td>${x.owner_email||'Unassigned'}</td><td>${status(x.status)}</td><td>${x.active_devices||0} / ${x.max_devices}</td><td>${date(x.expires_at)}</td><td>${date(x.created_at)}</td></tr>`);return shell(portal==='admin'?'License keys':'My license keys',portal==='admin'?'Manage inventory, assignment, and device limits.':'Keys assigned to your partner account and their current health.',`<div class="panel">${table(['Key prefix','Owner','Status','Devices','Expires','Created'],rows,'No license keys have been issued yet.')}</div>`,portal==='admin'?'<button class="primary" onclick="showGenerate()">+ Generate keys</button>':'<button class="primary" onclick="go(\'requests\')">Request keys</button>')}
+function partners(){return shell('Partners','Manage reseller access and account status.',`<div class="panel">${table(['Partner','Role','Status','Joined'],cache.users.map(x=>`<tr><td><b>${x.email}</b></td><td>Reseller</td><td>${status(x.is_active===false?'revoked':'active')}</td><td>${date(x.created_at)}</td></tr>`),'No reseller accounts yet.')}</div>`,`<button class="primary" onclick="showPartner()">+ Add partner</button>`)}
+function requests(){let rows=cache.requests.map(x=>`<tr><td><b>#${String(x.id||'').slice(0,8)}</b></td><td>${x.reseller_email||'Partner'}</td><td>${x.quantity||'—'} keys</td><td>${x.max_devices||'—'} devices</td><td>${status(x.status)}</td><td>${date(x.created_at)}</td>${portal==='admin'?`<td><button class="secondary" onclick="approve('${x.id}')">Review</button></td>`:''}</tr>`);return shell(portal==='admin'?'Key requests':'Key requests','Track approvals and keep your key pipeline moving.',`<div class="panel">${table(portal==='admin'?['Request','Partner','Quantity','Device limit','Status','Submitted','Action']:['Request','Partner','Quantity','Device limit','Status','Submitted'],rows,'No key requests found.')}</div>`,portal==='reseller'?'<button class="primary" onclick="showRequest()">+ New request</button>':'')}
+function usage(){let active=cache.licenses.reduce((n,x)=>n+Number(x.active_devices||0),0),total=cache.licenses.reduce((n,x)=>n+Number(x.max_devices||0),0),pct=total?Math.round(active/total*100):0;return shell('Usage & activity','Understand how your allocated keys are being consumed.',`<div class="cards">${stat('Allocated keys',cache.licenses.length,'Total assigned','▣')}${stat('Device seats',total,'Across your keys','◉')}${stat('Active now',active,'Live heartbeat sessions','✓')}${stat('Utilization',pct+'%','Current seat usage','◒')}</div><div class="panel usage"><h2>Device seat utilization</h2><p class="subtle">Active device heartbeats compared with your allocated device capacity.</p><div class="usage-row"><div class="usage-line"><span>Overall usage</span><span>${active} / ${total} seats</span></div><div class="bar"><i style="width:${pct}%"></i></div></div></div>`) }
+function verify(){return shell('Verification','Test a license heartbeat against the public verification service.',`<div class="panel form-panel"><h2>Run a verification check</h2><p class="subtle">Use this to validate a key and device combination without exposing secret key material.</p><div class="form-grid"><div><label>License key</label><input id="v-key"></div><div><label>Device ID</label><input id="v-device" value="demo-device-001"></div><div><label>App ID</label><input id="v-app" value="demo-app"></div><div><label>Version</label><input id="v-version" value="1.0.0"></div></div><button class="primary" onclick="doVerify()">Verify license</button><pre id="v-out" class="hidden"></pre></div>`) }
+function formPanel(title,fields,submit){$('content').insertAdjacentHTML('beforeend',`<div id="modal" class="panel form-panel" style="max-width:620px"><h2>${title}</h2>${fields}<div class="toolbar"><button class="primary" onclick="${submit}">Save</button><button class="secondary" onclick="$('modal').remove()">Cancel</button></div></div>`);$('modal').scrollIntoView({behavior:'smooth'})}
+function showGenerate(){formPanel('Generate license keys','<div class="form-grid"><div><label>Quantity</label><input id="f-q" type="number" value="1"></div><div><label>Max devices</label><input id="f-d" type="number" value="1"></div><div><label>TTL in days</label><input id="f-t" type="number" value="30"></div><div><label>Owner ID (optional)</label><input id="f-o"></div></div><label>Notes</label><input id="f-n">','generate()')}function showPartner(){formPanel('Add reseller partner','<label>Partner email</label><input id="f-e" type="email"><label>Temporary password</label><input id="f-p" type="password">','partner()')}function showRequest(){formPanel('Request license keys','<div class="form-grid"><div><label>Quantity</label><input id="f-q" type="number" value="5"></div><div><label>Max devices</label><input id="f-d" type="number" value="1"></div><div><label>TTL in days</label><input id="f-t" type="number" value="30"></div></div><label>Request note</label><input id="f-n">','request()')}
+async function refresh(page){await load();go(page);toast('Workspace updated')}async function generate(){try{await api('/api/v1/admin/licenses',{method:'POST',headers:auth(),body:JSON.stringify({owner_id:$('f-o').value||null,quantity:+$('f-q').value,max_devices:+$('f-d').value,ttl_days:+$('f-t').value,notes:$('f-n').value||null})});refresh('licenses')}catch(e){toast(e.message||'Could not generate keys')}}async function partner(){try{await api('/api/v1/admin/users',{method:'POST',headers:auth(),body:JSON.stringify({email:$('f-e').value,password:$('f-p').value})});refresh('partners')}catch(e){toast(e.message||'Could not create partner')}}async function request(){try{await api('/api/v1/reseller/key-requests',{method:'POST',headers:auth(),body:JSON.stringify({quantity:+$('f-q').value,max_devices:+$('f-d').value,ttl_days:+$('f-t').value,note:$('f-n').value||null})});refresh('requests')}catch(e){toast(e.message||'Could not submit request')}}async function approve(id){try{await api(`/api/v1/admin/key-requests/${id}/approve`,{method:'POST',headers:auth(),body:JSON.stringify({})});refresh('requests')}catch(e){toast(e.message||'Could not approve request')}}async function doVerify(){try{let d=await api('/api/v1/licenses/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({license_key:$('v-key').value,device_id:$('v-device').value,app_id:$('v-app').value,app_version:$('v-version').value})});$('v-out').textContent=JSON.stringify(d,null,2);$('v-out').classList.remove('hidden')}catch(e){toast(e.message||'Verification failed')}}
+async function boot(){if(localStorage.getItem(tokenKey)){try{user=await api('/api/v1/auth/me',{headers:auth()});portal=user.role;start();return}catch(e){localStorage.removeItem(tokenKey)}}}boot();
+</script></body></html>
