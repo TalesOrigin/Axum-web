@@ -7,8 +7,8 @@
   <style>
     :root{--ink:#172033;--muted:#6f7b91;--line:#e6eaf0;--surface:#fff;--canvas:#f5f7fb;--navy:#101c35;--blue:#315efb;--blue-soft:#eef2ff;--green:#159570;--green-soft:#e8f8f1;--amber:#b97812;--amber-soft:#fff7e7;--red:#cf4b5f;--red-soft:#fff0f2;--shadow:0 10px 35px rgba(28,44,77,.06)}
     *{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:14px Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
-    .login-shell{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#f5f7fb 0%,#eef2ff 100%)}.login-card{width:min(100%,470px);background:#fff;border:1px solid var(--line);border-radius:18px;padding:38px;box-shadow:0 24px 70px #31436d1c}.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.03em;font-size:19px}.brand-mark{height:34px;width:34px;border-radius:10px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900}.login-card h1{font-size:28px;letter-spacing:-.04em;margin:38px 0 8px}.subtle{color:var(--muted);line-height:1.55}.portal-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:24px 0}.portal-option{border:1px solid var(--line);background:#fff;border-radius:10px;text-align:left;padding:13px;color:var(--muted)}.portal-option strong{display:block;color:var(--ink);margin-bottom:4px}.portal-option.active{border-color:var(--blue);background:var(--blue-soft);box-shadow:inset 0 0 0 1px var(--blue)}label{display:block;font-size:12px;font-weight:700;color:#536077;margin:17px 0 7px}input,select,textarea{width:100%;border:1px solid #dce2eb;border-radius:8px;background:#fff;color:var(--ink);padding:11px 12px;outline:none}input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb14}.primary{border:0;background:var(--blue);color:#fff;border-radius:8px;padding:11px 15px;font-weight:700}.wide{width:100%;margin-top:22px}.error{color:var(--red);font-size:13px;margin-top:12px}.demo-note{font-size:12px;margin-top:24px;padding:11px;background:#f8fafc;border-radius:8px;color:var(--muted)}
-    .app{min-height:100vh;display:flex}.sidebar{width:244px;background:var(--navy);color:#d8e0f0;display:flex;flex-direction:column;padding:25px 14px;flex-shrink:0}.sidebar .brand{color:#fff;padding:0 12px 30px}.sidebar .brand-mark{background:#456cff}.portal-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8090af;font-weight:800;padding:0 12px 12px}.nav{display:grid;gap:4px}.nav button{background:none;border:0;color:#aebbd2;padding:11px 12px;border-radius:8px;text-align:left;display:flex;align-items:center;gap:11px}.nav button:hover,.nav button.active{background:#ffffff12;color:#fff}.nav button.active{box-shadow:inset 3px 0 var(--blue)}.nav svg{width:17px;height:17px;opacity:.85}.sidebar-bottom{margin-top:auto;border-top:1px solid #ffffff14;padding:16px 12px 0}.profile{font-size:12px;color:#bdc8da;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.logout{width:100%;margin-top:14px;background:#ffffff12;border:1px solid #ffffff18;color:#dbe3f1;padding:9px;border-radius:7px}.main{min-width:0;flex:1}.topbar{height:74px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,48px)}.crumb{font-size:13px;color:var(--muted)}.crumb strong{color:var(--ink);font-size:15px;margin-right:12px}.top-actions{display:flex;align-items:center;gap:14px}.role-badge{font-size:11px;padding:6px 9px;border-radius:20px;background:var(--blue-soft);color:var(--blue);font-weight:800}.avatar{width:33px;height:33px;border-radius:50%;display:grid;place-items:center;background:#dce5ff;color:var(--blue);font-weight:800}.content{padding:30px clamp(20px,4vw,48px);max-width:1500px}.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:25px}.page-head h1{font-size:25px;letter-spacing:-.04em;margin:0 0 6px}.page-head p{margin:0;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:22px}.card,.panel{background:var(--surface);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow)}.stat{padding:19px}.stat-top{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;font-weight:700}.stat-icon{color:var(--blue);background:var(--blue-soft);border-radius:7px;padding:7px}.stat-value{font-size:28px;font-weight:800;letter-spacing:-.04em;margin:15px 0 5px}.stat-note{font-size:11px;color:var(--muted)}.panel{overflow:hidden;margin-bottom:20px}.panel-head{display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:15px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:13px 20px;border-bottom:1px solid #eef1f5;white-space:nowrap}th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8a95a8;background:#fbfcfe}td{font-size:13px}tr:last-child td{border-bottom:0}.key{font-family:ui-monospace,SFMono-Regular,monospace;color:#354256;font-size:12px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:5px 9px;font-size:11px;font-weight:800}.status:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}.active,.approved{color:var(--green);background:var(--green-soft)}.pending{color:var(--amber);background:var(--amber-soft)}.revoked,.rejected{color:var(--red);background:var(--red-soft)}.empty{padding:35px 20px;text-align:center;color:var(--muted)}.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:20px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}.form-panel{padding:20px}.form-panel h2{margin:0 0 4px;font-size:16px}.form-panel .primary{margin-top:20px}.secondary{border:1px solid var(--line);background:#fff;color:#4e5b72;border-radius:7px;padding:8px 12px;font-weight:700}.danger{border:0;background:var(--red-soft);color:var(--red);border-radius:7px;padding:8px 12px;font-weight:700}.toolbar{display:flex;gap:8px;align-items:center}.toolbar select{width:auto;padding:8px}.notice{padding:14px 17px;background:#f8faff;border:1px solid #dfe6ff;border-radius:9px;color:#55627a;font-size:13px;margin-bottom:20px}.usage{padding:20px}.usage-row{margin:20px 0}.usage-line{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:8px}.bar{height:8px;background:#edf0f5;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue);border-radius:9px}.toast{position:fixed;right:24px;bottom:24px;background:var(--navy);color:#fff;padding:13px 17px;border-radius:8px;box-shadow:var(--shadow);z-index:5}
+    .login-shell{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#f5f7fb 0%,#eef2ff 100%)}.login-card{width:min(100%,470px);background:#fff;border:1px solid var(--line);border-radius:18px;padding:38px;box-shadow:0 24px 70px #31436d1c}.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.03em;font-size:19px}.brand-mark{height:34px;width:34px;border-radius:10px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900}.login-card h1{font-size:28px;letter-spacing:-.04em;margin:38px 0 8px}.subtle{color:var(--muted);line-height:1.55}.portal-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:24px 0}.portal-option{border:1px solid var(--line);background:#fff;border-radius:10px;text-align:left;padding:13px;color:var(--muted)}.portal-option strong{display:block;color:var(--ink);margin-bottom:4px}.portal-option.active{border-color:var(--blue);background:var(--blue-soft);box-shadow:inset 0 0 0 1px var(--blue)}label{display:block;font-size:12px;font-weight:700;color:#536077;margin:17px 0 7px}input,select,textarea{width:100%;border:1px solid #dce2eb;border-radius:8px;background:#fff;color:var(--ink);padding:11px 12px;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb14}.primary{border:0;background:var(--blue);color:#fff;border-radius:8px;padding:11px 15px;font-weight:700}.wide{width:100%;margin-top:22px}.error{color:var(--red);font-size:13px;margin-top:12px}.demo-note{font-size:12px;margin-top:24px;padding:11px;background:#f8fafc;border-radius:8px;color:var(--muted)}
+    .app{min-height:100vh;display:flex}.sidebar{width:244px;background:var(--navy);color:#d8e0f0;display:flex;flex-direction:column;padding:25px 14px;flex-shrink:0}.sidebar .brand{color:#fff;padding:0 12px 30px}.sidebar .brand-mark{background:#456cff}.portal-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8090af;font-weight:800;padding:0 12px 12px}.nav{display:grid;gap:4px}.nav button{background:none;border:0;color:#aebbd2;padding:11px 12px;border-radius:8px;text-align:left;display:flex;align-items:center;gap:11px}.nav button:hover,.nav button.active{background:#ffffff12;color:#fff}.nav button.active{box-shadow:inset 3px 0 var(--blue)}.sidebar-bottom{margin-top:auto;border-top:1px solid #ffffff14;padding:16px 12px 0}.profile{font-size:12px;color:#bdc8da;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.logout{width:100%;margin-top:14px;background:#ffffff12;border:1px solid #ffffff18;color:#dbe3f1;padding:9px;border-radius:7px}.main{min-width:0;flex:1}.topbar{height:74px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,48px)}.crumb{font-size:13px;color:var(--muted)}.crumb strong{color:var(--ink);font-size:15px;margin-right:12px}.top-actions{display:flex;align-items:center;gap:14px}.role-badge{font-size:11px;padding:6px 9px;border-radius:20px;background:var(--blue-soft);color:var(--blue);font-weight:800}.avatar{width:33px;height:33px;border-radius:50%;display:grid;place-items:center;background:#dce5ff;color:var(--blue);font-weight:800}.content{padding:30px clamp(20px,4vw,48px);max-width:1500px}.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:25px;gap:16px}.page-head h1{font-size:25px;letter-spacing:-.04em;margin:0 0 6px}.page-head p{margin:0;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:22px}.card,.panel{background:var(--surface);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow)}.stat{padding:19px}.stat-top{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;font-weight:700}.stat-icon{color:var(--blue);background:var(--blue-soft);border-radius:7px;padding:7px}.stat-value{font-size:28px;font-weight:800;letter-spacing:-.04em;margin:15px 0 5px}.stat-note{font-size:11px;color:var(--muted)}.panel{overflow:hidden;margin-bottom:20px}.panel-head{display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border-bottom:1px solid var(--line)}.panel-head h2{font-size:15px;margin:0}.panel-head span{font-size:12px;color:var(--muted)}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{text-align:left;padding:13px 20px;border-bottom:1px solid #eef1f5;white-space:nowrap;vertical-align:top}th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8a95a8;background:#fbfcfe}td{font-size:13px}tr:last-child td{border-bottom:0}.key{font-family:ui-monospace,SFMono-Regular,monospace;color:#354256;font-size:12px}.id{display:block;font-family:ui-monospace,SFMono-Regular,monospace;color:#9aa6b9;font-size:10px;margin-top:3px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:5px 9px;font-size:11px;font-weight:800;text-transform:capitalize}.status:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}.active,.approved{color:var(--green);background:var(--green-soft)}.pending,.suspended,.inactive,.banned{color:var(--amber);background:var(--amber-soft)}.revoked,.rejected{color:var(--red);background:var(--red-soft)}.empty{padding:35px 20px;text-align:center;color:var(--muted)}.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:20px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}.form-panel{padding:20px}.form-panel h2{margin:0 0 4px;font-size:16px}.form-panel .primary{margin-top:20px}.secondary{border:1px solid var(--line);background:#fff;color:#4e5b72;border-radius:7px;padding:8px 12px;font-weight:700}.danger{border:0;background:var(--red-soft);color:var(--red);border-radius:7px;padding:8px 12px;font-weight:700}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar select{width:auto;padding:8px}.row-actions button{padding:6px 9px;font-size:12px}.license-select{width:auto;min-width:130px;padding:7px}.notice{padding:14px 17px;background:#f8faff;border:1px solid #dfe6ff;border-radius:9px;color:#55627a;font-size:13px;margin-bottom:20px}.usage{padding:20px}.usage-row{margin:20px 0}.usage-line{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:8px}.bar{height:8px;background:#edf0f5;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue);border-radius:9px}.toast{position:fixed;right:24px;bottom:24px;background:var(--navy);color:#fff;padding:13px 17px;border-radius:8px;box-shadow:var(--shadow);z-index:5;max-width:min(520px,calc(100vw - 48px))}
     @media(max-width:900px){.sidebar{width:205px}.cards{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}}@media(max-width:620px){.app{display:block}.sidebar{width:100%;padding:14px;min-height:auto}.sidebar .brand{padding:0 5px 15px}.portal-label{display:none}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap}.sidebar-bottom{display:none}.topbar{padding:0 16px}.content{padding:22px 15px}.cards{grid-template-columns:1fr 1fr}.page-head{display:block}.page-head .primary{margin-top:15px}.login-card{padding:26px}.form-grid{grid-template-columns:1fr}}
   </style>
 </head>
@@ -21,30 +21,307 @@
   </div></div>
   <div id="app" class="app hidden"><aside class="sidebar"><div class="brand"><span class="brand-mark">A</span> Axum</div><div class="portal-label" id="portal-label">Admin portal</div><nav id="nav" class="nav"></nav><div class="sidebar-bottom"><div class="profile" id="profile"></div><button class="logout" onclick="logout()">Sign out</button></div></aside><div class="main"><header class="topbar"><div class="crumb"><strong id="top-title">Overview</strong><span id="top-context">Workspace</span></div><div class="top-actions"><span class="role-badge" id="role-badge">ADMIN</span><span class="avatar" id="avatar">A</span></div></header><main id="content" class="content"></main></div></div><div id="toast" class="toast hidden"></div>
 <script>
-const $=id=>document.getElementById(id), tokenKey='axum_web_token'; let portal='admin', user=null, cache={licenses:[],requests:[],users:[]};
-const icons={overview:'▦',licenses:'▣',partners:'♙',requests:'◷',verify:'✓',usage:'◒'};
-function choosePortal(v){portal=v;document.querySelectorAll('.portal-option').forEach(x=>x.classList.toggle('active',x.dataset.role===v));$('email').value=v==='admin'?'admin@example.com':''}
-function auth(){return {'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem(tokenKey)||''}`}}
-async function api(path,opt={}){let r=await fetch(path,opt),t=await r.text(),b=t?JSON.parse(t):null;if(!r.ok)throw b||{message:r.statusText};return b}
-function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),2800)}
-async function login(){try{let d=await api('/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('email').value,password:$('password').value})});localStorage.setItem(tokenKey,d.access_token);user=await api('/api/v1/auth/me',{headers:auth()});if(user.role!==portal){throw {message:`This account is not a ${portal} account.`}};start()}catch(e){$('login-error').textContent=e.message||e.error||'Unable to sign in.'}}
-function logout(){localStorage.removeItem(tokenKey);$('app').classList.add('hidden');$('login').classList.remove('hidden')}
-function start(){ $('login').classList.add('hidden');$('app').classList.remove('hidden');$('portal-label').textContent=portal==='admin'?'Admin portal':'Reseller portal';$('role-badge').textContent=portal.toUpperCase();$('profile').textContent=user.email;$('avatar').textContent=user.email[0].toUpperCase();buildNav();go('overview');load().then(()=>go('overview')) }
-function buildNav(){let items=portal==='admin'?[['overview','Overview'],['licenses','License keys'],['partners','Partners'],['requests','Key requests'],['verify','Verification']]:[['overview','Overview'],['licenses','My license keys'],['requests','Requests'],['usage','Usage & activity']];$('nav').innerHTML=items.map(([id,label])=>`<button data-page="${id}" onclick="go('${id}')"><span style="font-size:18px;width:18px;text-align:center">${icons[id]}</span>${label}</button>`).join('')}
-async function load(){try{if(portal==='admin'){cache.licenses=await api('/api/v1/admin/licenses',{headers:auth()});cache.requests=await api('/api/v1/admin/key-requests?status=pending',{headers:auth()});cache.users=await api('/api/v1/admin/users?role=reseller',{headers:auth()})}else{cache.licenses=await api('/api/v1/reseller/licenses',{headers:auth()});cache.requests=await api('/api/v1/reseller/key-requests',{headers:auth()})}}catch(e){toast(e.message||'Could not load workspace')}}
-function go(page){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('top-title').textContent=page==='overview'?'Overview':page==='licenses'?(portal==='admin'?'License keys':'My license keys'):page[0].toUpperCase()+page.slice(1);$('top-context').textContent=portal==='admin'?'Admin workspace':'Partner workspace';render(page)}
-function status(s){return `<span class="status ${s||'pending'}">${s||'pending'}</span>`}function date(s){return s?new Date(s).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'—'}function key(k){return `<span class="key">${k||'—'}</span>`}function table(headers,rows,empty='No records found'){return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${headers.length}" class="empty">${empty}</td></tr>`}</tbody></table></div>`}
-function stat(label,value,note,icon='◈'){return `<div class="card stat"><div class="stat-top"><span>${label}</span><span class="stat-icon">${icon}</span></div><div class="stat-value">${value}</div><div class="stat-note">${note}</div></div>`}
-function shell(title,desc,body,action=''){return `<div class="page-head"><div><h1>${title}</h1><p>${desc}</p></div>${action}</div>${body}`}
-function render(page){let c;if(page==='overview')c=overview();if(page==='licenses')c=licenses();if(page==='partners')c=partners();if(page==='requests')c=requests();if(page==='verify')c=verify();if(page==='usage')c=usage();$('content').innerHTML=c}
-function overview(){let l=cache.licenses,r=cache.requests,active=l.filter(x=>x.status==='active').length,devices=l.reduce((n,x)=>n+Number(x.active_devices||0),0);return shell('Good afternoon','A clear view of your licensing operation.',`<div class="cards">${stat('Total license keys',l.length,'Across all workspaces','▣')}${stat('Active keys',active,`${l.length?Math.round(active/l.length*100):0}% of inventory`,'✓')}${stat('Active devices',devices,'Currently verifying','◉')}${stat(portal==='admin'?'Pending requests':'Open requests',r.filter(x=>x.status==='pending').length,'Needs attention','◷')}</div><div class="grid-2"><div class="panel"><div class="panel-head"><h2>Recent license activity</h2><button class="secondary" onclick="go('licenses')">View all</button></div>${table(['Key','Owner','Status','Devices','Expires'],l.slice(0,5).map(x=>`<tr><td>${key(x.key_prefix)}</td><td>${x.owner_email||'Unassigned'}</td><td>${status(x.status)}</td><td>${x.active_devices||0} / ${x.max_devices}</td><td>${date(x.expires_at)}</td></tr>`),'Your license inventory will appear here.')}</div><div class="panel"><div class="panel-head"><h2>${portal==='admin'?'Requests to review':'Request history'}</h2><button class="secondary" onclick="go('requests')">Open</button></div>${table(['Request','Quantity','Status'],r.slice(0,5).map(x=>`<tr><td>#${String(x.id||'').slice(0,8)}</td><td>${x.quantity||'—'} keys</td><td>${status(x.status)}</td></tr>`),'No open requests.')}</div></div>`)}
-function licenses(){let rows=cache.licenses.map(x=>`<tr><td>${key(x.key_prefix)}</td><td>${x.owner_email||'Unassigned'}</td><td>${status(x.status)}</td><td>${x.active_devices||0} / ${x.max_devices}</td><td>${date(x.expires_at)}</td><td>${date(x.created_at)}</td></tr>`);return shell(portal==='admin'?'License keys':'My license keys',portal==='admin'?'Manage inventory, assignment, and device limits.':'Keys assigned to your partner account and their current health.',`<div class="panel">${table(['Key prefix','Owner','Status','Devices','Expires','Created'],rows,'No license keys have been issued yet.')}</div>`,portal==='admin'?'<button class="primary" onclick="showGenerate()">+ Generate keys</button>':'<button class="primary" onclick="go(\'requests\')">Request keys</button>')}
-function partners(){return shell('Partners','Manage reseller access and account status.',`<div class="panel">${table(['Partner','Role','Status','Joined'],cache.users.map(x=>`<tr><td><b>${x.email}</b></td><td>Reseller</td><td>${status(x.is_active===false?'revoked':'active')}</td><td>${date(x.created_at)}</td></tr>`),'No reseller accounts yet.')}</div>`,`<button class="primary" onclick="showPartner()">+ Add partner</button>`)}
-function requests(){let rows=cache.requests.map(x=>`<tr><td><b>#${String(x.id||'').slice(0,8)}</b></td><td>${x.reseller_email||'Partner'}</td><td>${x.quantity||'—'} keys</td><td>${x.max_devices||'—'} devices</td><td>${status(x.status)}</td><td>${date(x.created_at)}</td>${portal==='admin'?`<td><button class="secondary" onclick="approve('${x.id}')">Review</button></td>`:''}</tr>`);return shell(portal==='admin'?'Key requests':'Key requests','Track approvals and keep your key pipeline moving.',`<div class="panel">${table(portal==='admin'?['Request','Partner','Quantity','Device limit','Status','Submitted','Action']:['Request','Partner','Quantity','Device limit','Status','Submitted'],rows,'No key requests found.')}</div>`,portal==='reseller'?'<button class="primary" onclick="showRequest()">+ New request</button>':'')}
-function usage(){let active=cache.licenses.reduce((n,x)=>n+Number(x.active_devices||0),0),total=cache.licenses.reduce((n,x)=>n+Number(x.max_devices||0),0),pct=total?Math.round(active/total*100):0;return shell('Usage & activity','Understand how your allocated keys are being consumed.',`<div class="cards">${stat('Allocated keys',cache.licenses.length,'Total assigned','▣')}${stat('Device seats',total,'Across your keys','◉')}${stat('Active now',active,'Live heartbeat sessions','✓')}${stat('Utilization',pct+'%','Current seat usage','◒')}</div><div class="panel usage"><h2>Device seat utilization</h2><p class="subtle">Active device heartbeats compared with your allocated device capacity.</p><div class="usage-row"><div class="usage-line"><span>Overall usage</span><span>${active} / ${total} seats</span></div><div class="bar"><i style="width:${pct}%"></i></div></div></div>`) }
-function verify(){return shell('Verification','Test a license heartbeat against the public verification service.',`<div class="panel form-panel"><h2>Run a verification check</h2><p class="subtle">Use this to validate a key and device combination without exposing secret key material.</p><div class="form-grid"><div><label>License key</label><input id="v-key"></div><div><label>Device ID</label><input id="v-device" value="demo-device-001"></div><div><label>App ID</label><input id="v-app" value="demo-app"></div><div><label>Version</label><input id="v-version" value="1.0.0"></div></div><button class="primary" onclick="doVerify()">Verify license</button><pre id="v-out" class="hidden"></pre></div>`) }
-function formPanel(title,fields,submit){$('content').insertAdjacentHTML('beforeend',`<div id="modal" class="panel form-panel" style="max-width:620px"><h2>${title}</h2>${fields}<div class="toolbar"><button class="primary" onclick="${submit}">Save</button><button class="secondary" onclick="$('modal').remove()">Cancel</button></div></div>`);$('modal').scrollIntoView({behavior:'smooth'})}
-function showGenerate(){formPanel('Generate license keys','<div class="form-grid"><div><label>Quantity</label><input id="f-q" type="number" value="1"></div><div><label>Max devices</label><input id="f-d" type="number" value="1"></div><div><label>TTL in days</label><input id="f-t" type="number" value="30"></div><div><label>Owner ID (optional)</label><input id="f-o"></div></div><label>Notes</label><input id="f-n">','generate()')}function showPartner(){formPanel('Add reseller partner','<label>Partner email</label><input id="f-e" type="email"><label>Temporary password</label><input id="f-p" type="password">','partner()')}function showRequest(){formPanel('Request license keys','<div class="form-grid"><div><label>Quantity</label><input id="f-q" type="number" value="5"></div><div><label>Max devices</label><input id="f-d" type="number" value="1"></div><div><label>TTL in days</label><input id="f-t" type="number" value="30"></div></div><label>Request note</label><input id="f-n">','request()')}
-async function refresh(page){await load();go(page);toast('Workspace updated')}async function generate(){try{await api('/api/v1/admin/licenses',{method:'POST',headers:auth(),body:JSON.stringify({owner_id:$('f-o').value||null,quantity:+$('f-q').value,max_devices:+$('f-d').value,ttl_days:+$('f-t').value,notes:$('f-n').value||null})});refresh('licenses')}catch(e){toast(e.message||'Could not generate keys')}}async function partner(){try{await api('/api/v1/admin/users',{method:'POST',headers:auth(),body:JSON.stringify({email:$('f-e').value,password:$('f-p').value})});refresh('partners')}catch(e){toast(e.message||'Could not create partner')}}async function request(){try{await api('/api/v1/reseller/key-requests',{method:'POST',headers:auth(),body:JSON.stringify({quantity:+$('f-q').value,max_devices:+$('f-d').value,ttl_days:+$('f-t').value,note:$('f-n').value||null})});refresh('requests')}catch(e){toast(e.message||'Could not submit request')}}async function approve(id){try{await api(`/api/v1/admin/key-requests/${id}/approve`,{method:'POST',headers:auth(),body:JSON.stringify({})});refresh('requests')}catch(e){toast(e.message||'Could not approve request')}}async function doVerify(){try{let d=await api('/api/v1/licenses/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({license_key:$('v-key').value,device_id:$('v-device').value,app_id:$('v-app').value,app_version:$('v-version').value})});$('v-out').textContent=JSON.stringify(d,null,2);$('v-out').classList.remove('hidden')}catch(e){toast(e.message||'Verification failed')}}
-async function boot(){if(localStorage.getItem(tokenKey)){try{user=await api('/api/v1/auth/me',{headers:auth()});portal=user.role;start();return}catch(e){localStorage.removeItem(tokenKey)}}}boot();
+const $ = id => document.getElementById(id);
+const tokenKey = 'axum_web_token';
+const statuses = ['active', 'suspended', 'revoked'];
+const icons = {overview:'▦', licenses:'▣', partners:'♙', requests:'◷', verify:'✓', usage:'◒'};
+let portal = 'admin';
+let user = null;
+let cache = {licenses: [], requests: [], users: []};
+
+function choosePortal(v) {
+  portal = v;
+  document.querySelectorAll('.portal-option').forEach(x => x.classList.toggle('active', x.dataset.role === v));
+  $('email').value = v === 'admin' ? 'admin@example.com' : '';
+}
+function auth() { return {'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem(tokenKey) || ''}`}; }
+function errorMessage(body, fallback) {
+  if (!body) return fallback || 'Request failed';
+  if (typeof body === 'string') return body || fallback || 'Request failed';
+  return body.error?.message || body.message || body.error || fallback || 'Request failed';
+}
+async function api(path, opt = {}) {
+  const r = await fetch(path, opt);
+  const text = await r.text();
+  let body = null;
+  if (text) {
+    try { body = JSON.parse(text); } catch (_) { body = text; }
+  }
+  if (!r.ok) throw {status: r.status, message: errorMessage(body, r.statusText), body};
+  return body;
+}
+function toast(msg) {
+  $('toast').textContent = msg;
+  $('toast').classList.remove('hidden');
+  setTimeout(() => $('toast').classList.add('hidden'), 3400);
+}
+async function login() {
+  try {
+    $('login-error').textContent = '';
+    const d = await api('/api/v1/auth/login', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: $('email').value, password: $('password').value})});
+    localStorage.setItem(tokenKey, d.access_token);
+    user = await api('/api/v1/auth/me', {headers: auth()});
+    if (user.role !== portal) {
+      localStorage.removeItem(tokenKey);
+      throw {message: `This account is not a ${portal} account.`};
+    }
+    start();
+  } catch (e) {
+    $('login-error').textContent = e.message || 'Unable to sign in.';
+  }
+}
+function logout() {
+  localStorage.removeItem(tokenKey);
+  $('app').classList.add('hidden');
+  $('login').classList.remove('hidden');
+}
+function start() {
+  $('login').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('portal-label').textContent = portal === 'admin' ? 'Admin portal' : 'Reseller portal';
+  $('role-badge').textContent = portal.toUpperCase();
+  $('profile').textContent = user.email;
+  $('avatar').textContent = user.email[0].toUpperCase();
+  buildNav();
+  go('overview');
+  load().then(() => go('overview'));
+}
+function buildNav() {
+  const items = portal === 'admin'
+    ? [['overview','Overview'], ['licenses','License keys'], ['partners','Management'], ['requests','Key requests'], ['verify','Verification']]
+    : [['overview','Overview'], ['licenses','My license keys'], ['requests','Requests'], ['usage','Usage & activity']];
+  $('nav').innerHTML = items.map(([id, label]) => `<button data-page="${id}" onclick="go('${id}')"><span style="font-size:18px;width:18px;text-align:center">${icons[id]}</span>${label}</button>`).join('');
+}
+async function load() {
+  try {
+    if (portal === 'admin') {
+      const [licenses, requests, users] = await Promise.all([
+        api('/api/v1/admin/licenses', {headers: auth()}),
+        api('/api/v1/admin/key-requests?status=pending', {headers: auth()}),
+        api('/api/v1/admin/users', {headers: auth()}),
+      ]);
+      cache.licenses = licenses || [];
+      cache.requests = requests || [];
+      cache.users = users || [];
+    } else {
+      const [licenses, requests] = await Promise.all([
+        api('/api/v1/reseller/licenses', {headers: auth()}),
+        api('/api/v1/reseller/key-requests', {headers: auth()}),
+      ]);
+      cache.licenses = licenses || [];
+      cache.requests = requests || [];
+    }
+  } catch (e) {
+    toast(e.message || 'Could not load workspace');
+  }
+}
+function go(page) {
+  document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  const titles = {overview: 'Overview', licenses: portal === 'admin' ? 'License keys' : 'My license keys', partners: 'Management', requests: 'Key requests', verify: 'Verification', usage: 'Usage & activity'};
+  $('top-title').textContent = titles[page] || page[0].toUpperCase() + page.slice(1);
+  $('top-context').textContent = portal === 'admin' ? 'Admin workspace' : 'Partner workspace';
+  render(page);
+}
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[ch]));
+}
+function status(s) { return `<span class="status ${esc(s || 'pending')}">${esc(s || 'pending')}</span>`; }
+function date(s) { return s ? new Date(s).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'}) : '—'; }
+function key(k) { return `<span class="key">${esc(k || '—')}</span>`; }
+function shortId(id) { return esc(String(id || '').slice(0, 8)); }
+function table(headers, rows, empty = 'No records found') {
+  return `<div class="table-wrap"><table><thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.join('') : `<tr><td colspan="${headers.length}" class="empty">${esc(empty)}</td></tr>`}</tbody></table></div>`;
+}
+function stat(label, value, note, icon = '◈') {
+  return `<div class="card stat"><div class="stat-top"><span>${esc(label)}</span><span class="stat-icon">${esc(icon)}</span></div><div class="stat-value">${esc(value)}</div><div class="stat-note">${esc(note)}</div></div>`;
+}
+function shell(title, desc, body, action = '') {
+  return `<div class="page-head"><div><h1>${esc(title)}</h1><p>${esc(desc)}</p></div>${action}</div>${body}`;
+}
+function render(page) {
+  let c = '';
+  if (page === 'overview') c = overview();
+  if (page === 'licenses') c = licenses();
+  if (page === 'partners') c = partners();
+  if (page === 'requests') c = requests();
+  if (page === 'verify') c = verify();
+  if (page === 'usage') c = usage();
+  $('content').innerHTML = c;
+}
+function overview() {
+  const l = cache.licenses;
+  const r = cache.requests;
+  const active = l.filter(x => x.status === 'active').length;
+  const devices = l.reduce((n, x) => n + Number(x.active_devices || 0), 0);
+  const users = portal === 'admin' ? cache.users.length : l.length;
+  return shell('Good afternoon', 'A clear view of your licensing operation.', `<div class="cards">${stat('Total license keys', l.length, 'Across all workspaces', '▣')}${stat('Active keys', active, `${l.length ? Math.round(active / l.length * 100) : 0}% of inventory`, '✓')}${stat(portal === 'admin' ? 'Managed users' : 'Active devices', portal === 'admin' ? users : devices, portal === 'admin' ? 'Admins and resellers' : 'Currently verifying', '◉')}${stat(portal === 'admin' ? 'Pending requests' : 'Open requests', r.filter(x => x.status === 'pending').length, 'Needs attention', '◷')}</div><div class="grid-2"><div class="panel"><div class="panel-head"><h2>Recent license activity</h2><button class="secondary" onclick="go('licenses')">View all</button></div>${table(['Key','Owner','Status','Devices','Expires'], l.slice(0, 5).map(x => `<tr><td>${key(x.key_prefix)}</td><td>${esc(x.owner_email || 'Unassigned')}</td><td>${status(x.status)}</td><td>${esc(x.active_devices || 0)} / ${esc(x.max_devices)}</td><td>${date(x.expires_at)}</td></tr>`), 'Your license inventory will appear here.')}</div><div class="panel"><div class="panel-head"><h2>${portal === 'admin' ? 'Requests to review' : 'Request history'}</h2><button class="secondary" onclick="go('requests')">Open</button></div>${table(['Request','Quantity','Status'], r.slice(0, 5).map(x => `<tr><td>#${shortId(x.id)}</td><td>${esc(x.quantity || '—')} keys</td><td>${status(x.status)}</td></tr>`), 'No open requests.')}</div></div>`);
+}
+function licenseStatusControl(x) {
+  if (!x.id) return '—';
+  const options = statuses.map(s => `<option value="${s}" ${x.status === s ? 'selected' : ''}>${s}</option>`).join('');
+  return `<select class="license-select" onchange="changeLicenseStatus('${esc(x.id)}', this.value)">${options}</select>`;
+}
+function licenses() {
+  const isAdmin = portal === 'admin';
+  const headers = isAdmin ? ['Key prefix','Owner','Status','Devices','Expires','Created','Action'] : ['Key prefix','Status','Devices','Expires','Created','Action'];
+  const rows = cache.licenses.map(x => `<tr><td>${key(x.key_prefix)}<span class="id">${shortId(x.id)}</span></td>${isAdmin ? `<td>${esc(x.owner_email || 'Unassigned')}</td>` : ''}<td>${status(x.status)}</td><td>${esc(x.active_devices || 0)} / ${esc(x.max_devices)}</td><td>${date(x.expires_at)}</td><td>${date(x.created_at)}</td><td>${licenseStatusControl(x)}</td></tr>`);
+  return shell(isAdmin ? 'License keys' : 'My license keys', isAdmin ? 'Manage inventory, assignment, device limits, and key state.' : 'Keys assigned to your partner account and their current health.', `<div class="panel">${table(headers, rows, 'No license keys have been issued yet.')}</div>`, isAdmin ? '<button class="primary" onclick="showGenerate()">+ Generate keys</button>' : '<button class="primary" onclick="go(\'requests\')">Request keys</button>');
+}
+function userKeySummary(userId) {
+  const keys = cache.licenses.filter(k => k.owner_id === userId);
+  const active = keys.filter(k => k.status === 'active').length;
+  const paused = keys.filter(k => k.status === 'suspended').length;
+  const revoked = keys.filter(k => k.status === 'revoked').length;
+  return {total: keys.length, active, paused, revoked};
+}
+function userActions(u) {
+  if (user && u.id === user.id) return '<span class="subtle">Current account</span>';
+  const activeToggle = u.is_active === false
+    ? `<button class="secondary" onclick="unbanUser('${esc(u.id)}')">Unban</button>`
+    : `<button class="danger" onclick="banUser('${esc(u.id)}')">Ban + pause</button>`;
+  return `<div class="toolbar row-actions">${activeToggle}<button class="secondary" onclick="setUserKeys('${esc(u.id)}','suspended')">Pause keys</button><button class="secondary" onclick="setUserKeys('${esc(u.id)}','active')">Resume keys</button><button class="danger" onclick="setUserKeys('${esc(u.id)}','revoked')">Revoke keys</button><button class="danger" onclick="deleteUser('${esc(u.id)}')">Delete</button></div>`;
+}
+function partners() {
+  const rows = cache.users.map(u => {
+    const keys = userKeySummary(u.id);
+    return `<tr><td><b>${esc(u.email)}</b><span class="id">${esc(u.id)}</span></td><td>${esc(u.role === 'admin' ? 'Admin' : 'Reseller')}</td><td>${status(u.is_active === false ? 'banned' : 'active')}</td><td>${esc(keys.total)} total · ${esc(keys.active)} active · ${esc(keys.paused)} paused · ${esc(keys.revoked)} revoked</td><td>${date(u.created_at)}</td><td>${userActions(u)}</td></tr>`;
+  });
+  return shell('User management', 'Create admins or resellers, ban sellers, delete accounts, and bulk pause all keys related to a seller.', `<div class="panel">${table(['User','Role','Status','Keys','Joined','Actions'], rows, 'No user accounts yet.')}</div>`, `<button class="primary" onclick="showPartner()">+ Add user</button>`);
+}
+function requestActions(x) {
+  if (portal !== 'admin') return '';
+  if (x.status !== 'pending') return '<td>—</td>';
+  return `<td><div class="toolbar row-actions"><button class="secondary" onclick="approve('${esc(x.id)}')">Approve</button><button class="danger" onclick="reject('${esc(x.id)}')">Reject</button></div></td>`;
+}
+function requests() {
+  const rows = cache.requests.map(x => `<tr><td><b>#${shortId(x.id)}</b></td><td>${esc(x.reseller_email || 'Partner')}</td><td>${esc(x.quantity || '—')} keys</td><td>${esc(x.max_devices || '—')} devices</td><td>${status(x.status)}</td><td>${date(x.created_at)}</td>${requestActions(x)}</tr>`);
+  return shell(portal === 'admin' ? 'Key requests' : 'Key requests', 'Track approvals and keep your key pipeline moving.', `<div class="panel">${table(portal === 'admin' ? ['Request','Partner','Quantity','Device limit','Status','Submitted','Action'] : ['Request','Partner','Quantity','Device limit','Status','Submitted'], rows, 'No key requests found.')}</div>`, portal === 'reseller' ? '<button class="primary" onclick="showRequest()">+ New request</button>' : '');
+}
+function usage() {
+  const active = cache.licenses.reduce((n, x) => n + Number(x.active_devices || 0), 0);
+  const total = cache.licenses.reduce((n, x) => n + Number(x.max_devices || 0), 0);
+  const pct = total ? Math.round(active / total * 100) : 0;
+  return shell('Usage & activity', 'Understand how your allocated keys are being consumed.', `<div class="cards">${stat('Allocated keys', cache.licenses.length, 'Total assigned', '▣')}${stat('Device seats', total, 'Across your keys', '◉')}${stat('Active now', active, 'Live heartbeat sessions', '✓')}${stat('Utilization', pct + '%', 'Current seat usage', '◒')}</div><div class="panel usage"><h2>Device seat utilization</h2><p class="subtle">Active device heartbeats compared with your allocated device capacity.</p><div class="usage-row"><div class="usage-line"><span>Overall usage</span><span>${esc(active)} / ${esc(total)} seats</span></div><div class="bar"><i style="width:${esc(pct)}%"></i></div></div></div>`);
+}
+function verify() {
+  return shell('Verification', 'Test a license heartbeat against the public verification service.', `<div class="panel form-panel"><h2>Run a verification check</h2><p class="subtle">Use this to validate a key and device combination without exposing secret key material.</p><div class="form-grid"><div><label>License key</label><input id="v-key"></div><div><label>Device ID</label><input id="v-device" value="demo-device-001"></div><div><label>App ID</label><input id="v-app" value="demo-app"></div><div><label>Version</label><input id="v-version" value="1.0.0"></div></div><button class="primary" onclick="doVerify()">Verify license</button><pre id="v-out" class="hidden"></pre></div>`);
+}
+function formPanel(title, fields, submit) {
+  const existing = $('modal');
+  if (existing) existing.remove();
+  $('content').insertAdjacentHTML('beforeend', `<div id="modal" class="panel form-panel" style="max-width:680px"><h2>${esc(title)}</h2>${fields}<div class="toolbar"><button class="primary" onclick="${submit}">Save</button><button class="secondary" onclick="$('modal').remove()">Cancel</button></div></div>`);
+  $('modal').scrollIntoView({behavior: 'smooth'});
+}
+function userOptions() {
+  return '<option value="">Unassigned</option>' + cache.users.filter(u => u.is_active !== false).map(u => `<option value="${esc(u.id)}">${esc(u.email)} (${esc(u.role)})</option>`).join('');
+}
+function showGenerate() {
+  formPanel('Generate license keys', `<div class="form-grid"><div><label>Quantity</label><input id="f-q" type="number" value="1" min="1"></div><div><label>Max devices</label><input id="f-d" type="number" value="1" min="1"></div><div><label>TTL in days</label><input id="f-t" type="number" value="30" min="1"></div><div><label>Owner (optional)</label><select id="f-o">${userOptions()}</select></div></div><label>Notes</label><input id="f-n">`, 'generate()');
+}
+function showPartner() {
+  formPanel('Add user / partner', `<div class="form-grid"><div><label>User role</label><select id="f-role"><option value="reseller">Reseller / seller</option><option value="admin">Admin</option></select></div><div><label>Initial status</label><select id="f-active"><option value="true">Active</option><option value="false">Banned / inactive</option></select></div></div><label>Work email</label><input id="f-e" type="email" placeholder="seller@example.com"><label>Temporary password</label><input id="f-p" type="password" minlength="12" placeholder="At least 12 characters"><p class="subtle">Admins can access the management portal. Resellers can request and manage their assigned license keys.</p>`, 'partner()');
+}
+function showRequest() {
+  formPanel('Request license keys', '<div class="form-grid"><div><label>Quantity</label><input id="f-q" type="number" value="5" min="1"></div><div><label>Max devices</label><input id="f-d" type="number" value="1" min="1"></div><div><label>TTL in days</label><input id="f-t" type="number" value="30" min="1"></div></div><label>Request note</label><input id="f-n">', 'request()');
+}
+async function refresh(page, message = 'Workspace updated') {
+  await load();
+  go(page);
+  if (message) toast(message);
+}
+async function generate() {
+  try {
+    await api('/api/v1/admin/licenses', {method: 'POST', headers: auth(), body: JSON.stringify({owner_id: $('f-o').value || null, quantity: +$('f-q').value, max_devices: +$('f-d').value, ttl_days: +$('f-t').value, notes: $('f-n').value || null})});
+    refresh('licenses', 'License keys generated');
+  } catch (e) { toast(e.message || 'Could not generate keys'); }
+}
+async function partner() {
+  try {
+    const password = $('f-p').value;
+    if (password.length < 12) { toast('Temporary password must be at least 12 characters.'); return; }
+    await api('/api/v1/admin/users', {method: 'POST', headers: auth(), body: JSON.stringify({email: $('f-e').value.trim(), password, role: $('f-role').value, is_active: $('f-active').value === 'true'})});
+    refresh('partners', 'User saved');
+  } catch (e) { toast(e.message || 'Could not save user'); }
+}
+async function request() {
+  try {
+    await api('/api/v1/reseller/key-requests', {method: 'POST', headers: auth(), body: JSON.stringify({quantity: +$('f-q').value, max_devices: +$('f-d').value, ttl_days: +$('f-t').value, note: $('f-n').value || null})});
+    refresh('requests', 'Request submitted');
+  } catch (e) { toast(e.message || 'Could not submit request'); }
+}
+async function approve(id) {
+  try {
+    if (!confirm('Approve this request and generate the license keys now?')) return;
+    await api(`/api/v1/admin/key-requests/${id}/approve`, {method: 'POST', headers: auth(), body: JSON.stringify({})});
+    refresh('requests', 'Request approved and keys generated');
+  } catch (e) { toast(e.message || 'Could not approve request'); }
+}
+async function reject(id) {
+  try {
+    const admin_note = prompt('Optional rejection note:', '') || null;
+    await api(`/api/v1/admin/key-requests/${id}/reject`, {method: 'POST', headers: auth(), body: JSON.stringify({admin_note})});
+    refresh('requests', 'Request rejected');
+  } catch (e) { toast(e.message || 'Could not reject request'); }
+}
+async function changeLicenseStatus(id, newStatus) {
+  try {
+    const path = portal === 'admin' ? `/api/v1/admin/licenses/${id}/status` : `/api/v1/reseller/licenses/${id}/status`;
+    await api(path, {method: 'PATCH', headers: auth(), body: JSON.stringify({status: newStatus})});
+    refresh('licenses', `License set to ${newStatus}`);
+  } catch (e) { toast(e.message || 'Could not update license'); }
+}
+async function banUser(id) {
+  try {
+    if (!confirm('Ban this user? They will not be able to sign in, and active keys owned by them will be paused.')) return;
+    await api(`/api/v1/admin/users/${id}/status`, {method: 'PATCH', headers: auth(), body: JSON.stringify({is_active: false})});
+    await api(`/api/v1/admin/users/${id}/licenses/status`, {method: 'PATCH', headers: auth(), body: JSON.stringify({status: 'suspended'})});
+    refresh('partners', 'User banned and active keys paused');
+  } catch (e) { toast(e.message || 'Could not ban user'); }
+}
+async function unbanUser(id) {
+  try {
+    if (!confirm('Unban this user? Paused keys stay paused until you resume them.')) return;
+    await api(`/api/v1/admin/users/${id}/status`, {method: 'PATCH', headers: auth(), body: JSON.stringify({is_active: true})});
+    refresh('partners', 'User unbanned');
+  } catch (e) { toast(e.message || 'Could not unban user'); }
+}
+async function setUserKeys(id, newStatus) {
+  const text = newStatus === 'suspended'
+    ? 'Pause all active keys owned by this user?'
+    : newStatus === 'active'
+      ? 'Resume all paused keys owned by this user? Revoked keys stay revoked.'
+      : 'Revoke all non-revoked keys owned by this user? This blocks those keys.';
+  try {
+    if (!confirm(text)) return;
+    const result = await api(`/api/v1/admin/users/${id}/licenses/status`, {method: 'PATCH', headers: auth(), body: JSON.stringify({status: newStatus})});
+    refresh('partners', `${result.updated_count || 0} key(s) updated`);
+  } catch (e) { toast(e.message || 'Could not update user keys'); }
+}
+async function deleteUser(id) {
+  try {
+    if (!confirm('Delete this user? Active owned keys will be paused and unassigned. Their key requests will be removed.')) return;
+    const result = await api(`/api/v1/admin/users/${id}`, {method: 'DELETE', headers: auth()});
+    refresh('partners', `User deleted. ${result.suspended_key_count || 0} active key(s) paused.`);
+  } catch (e) { toast(e.message || 'Could not delete user'); }
+}
+async function doVerify() {
+  try {
+    const d = await api('/api/v1/licenses/verify', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({license_key: $('v-key').value, device_id: $('v-device').value, app_id: $('v-app').value, app_version: $('v-version').value})});
+    $('v-out').textContent = JSON.stringify(d, null, 2);
+    $('v-out').classList.remove('hidden');
+  } catch (e) { toast(e.message || 'Verification failed'); }
+}
+async function boot() {
+  if (localStorage.getItem(tokenKey)) {
+    try {
+      user = await api('/api/v1/auth/me', {headers: auth()});
+      portal = user.role;
+      start();
+      return;
+    } catch (e) {
+      localStorage.removeItem(tokenKey);
+    }
+  }
+}
+boot();
 </script></body></html>

@@ -8,7 +8,7 @@ use crate::{security, state::AppState};
 use axum::{
     http::{header, HeaderName, HeaderValue, Method},
     middleware,
-    routing::{get, patch, post},
+    routing::{delete, get, patch, post},
     Router,
 };
 use tower::ServiceBuilder;
@@ -33,8 +33,13 @@ pub fn router(state: AppState) -> Router {
         .route("/api/v1/auth/me", get(auth::me))
         .route("/api/v1/licenses/verify", post(licenses::verify_license))
         .route("/api/v1/licenses/release", post(licenses::release_license))
-        .route("/api/v1/admin/users", get(admin::list_users).post(admin::create_reseller))
+        .route("/api/v1/admin/users", get(admin::list_users).post(admin::create_user))
+        .route("/api/v1/admin/users/:id", delete(admin::delete_user))
         .route("/api/v1/admin/users/:id/status", patch(admin::set_user_status))
+        .route(
+            "/api/v1/admin/users/:id/licenses/status",
+            patch(admin::set_user_license_status),
+        )
         .route("/api/v1/admin/licenses", get(admin::list_licenses).post(admin::generate_licenses))
         .route("/api/v1/admin/licenses/:id/status", patch(admin::set_license_status))
         .route("/api/v1/admin/key-requests", get(admin::list_key_requests))
