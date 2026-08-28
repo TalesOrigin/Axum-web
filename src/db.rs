@@ -1,11 +1,15 @@
-use crate::{config::Config, models::ROLE_ADMIN, services::auth::hash_password};
+use crate::{
+    config::Config,
+    models::ROLE_ADMIN,
+    services::auth::hash_password,
+};
 use anyhow::{bail, Context};
 use serde_json::Value;
-use sqlx::PgPool;
+use sqlx::AnyPool;
 use tracing::{info, warn};
 use uuid::Uuid;
 
-pub async fn bootstrap_admin(pool: &PgPool, config: &Config) -> anyhow::Result<()> {
+pub async fn bootstrap_admin(pool: &AnyPool, config: &Config) -> anyhow::Result<()> {
     let (admin_count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users WHERE role = $1")
         .bind(ROLE_ADMIN)
         .fetch_one(pool)
@@ -44,20 +48,25 @@ pub async fn bootstrap_admin(pool: &PgPool, config: &Config) -> anyhow::Result<(
     }
 
     let password_hash = hash_password(&password).context("hashing bootstrap admin password")?;
-
-    sqlx::query(
+    let user_id = Uuid::new_v4();
+    let id = config.uuid_cast("$1");
+    let sql = format!(
         r#"
-        INSERT INTO users (email, password_hash, role, is_active)
-        VALUES ($1, $2, $3, true)
+        INSERT INTO users (id, email, password_hash, role, is_active)
+        VALUES ({id}, $2, $3, $4, $5)
         ON CONFLICT DO NOTHING
         "#,
-    )
-    .bind(email.to_ascii_lowercase())
-    .bind(password_hash)
-    .bind(ROLE_ADMIN)
-    .execute(pool)
-    .await
-    .context("creating bootstrap administrator")?;
+    );
+
+    sqlx::query(&sql)
+        .bind(user_id.to_string())
+        .bind(email.to_ascii_lowercase())
+        .bind(password_hash)
+        .bind(ROLE_ADMIN)
+        .bind(true)
+        .execute(pool)
+        .await
+        .context("creating bootstrap administrator")?;
 
     info!("bootstrap administrator is ready");
     Ok(())
@@ -65,7 +74,8 @@ pub async fn bootstrap_admin(pool: &PgPool, config: &Config) -> anyhow::Result<(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn audit_event(
-    pool: &PgPool,
+    pool: &AnyPool,
+    config: &Config,
     actor_id: Option<Uuid>,
     target_user_id: Option<Uuid>,
     license_id: Option<Uuid>,
@@ -75,26 +85,35 @@ pub async fn audit_event(
     user_agent: Option<String>,
     details: Value,
 ) -> anyhow::Result<()> {
-    sqlx::query(
+    let id = config.uuid_cast("$1");
+    let actor = config.uuid_cast("$2");
+    let target_user = config.uuid_cast("$3");
+    let license = config.uuid_cast("$4");
+    let request = config.uuid_cast("$5");
+    let details_param = config.json_cast("$9");
+    let sql = format!(
         r#"
         INSERT INTO audit_events (
-            actor_id, target_user_id, license_id, request_id,
+            id, actor_id, target_user_id, license_id, request_id,
             event_type, ip_address, user_agent, details
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ({id}, {actor}, {target_user}, {license}, {request}, $6, $7, $8, {details_param})
         "#,
-    )
-    .bind(actor_id)
-    .bind(target_user_id)
-    .bind(license_id)
-    .bind(request_id)
-    .bind(event_type)
-    .bind(ip_address)
-    .bind(user_agent)
-    .bind(details)
-    .execute(pool)
-    .await
-    .context("writing audit event")?;
+    );
+
+    sqlx::query(&sql)
+        .bind(Uuid::new_v4().to_string())
+        .bind(actor_id.map(|value| value.to_string()))
+        .bind(target_user_id.map(|value| value.to_string()))
+        .bind(license_id.map(|value| value.to_string()))
+        .bind(request_id.map(|value| value.to_string()))
+        .bind(event_type)
+        .bind(ip_address)
+        .bind(user_agent)
+        .bind(details.to_string())
+        .execute(pool)
+        .await
+        .context("writing audit event")?;
 
     Ok(())
 }
