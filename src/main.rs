@@ -8,8 +8,8 @@ mod services;
 mod state;
 
 use anyhow::Context;
-use config::Config;
-use sqlx::postgres::PgPoolOptions;
+use config::{Config, DatabaseKind};
+use sqlx::any::AnyPoolOptions;
 use std::{net::SocketAddr, time::Duration};
 use tokio::net::TcpListener;
 use tracing::{error, info};
@@ -20,21 +20,40 @@ async fn main() -> anyhow::Result<()> {
     init_tracing();
 
     let config = Config::from_env().context("loading configuration")?;
+    config
+        .prepare_sqlite_database()
+        .context("preparing SQLite database")?;
 
-    let pool = PgPoolOptions::new()
+    // AnyPool selects the concrete SQLx driver from DATABASE_URL. Installing the
+    // drivers once at startup keeps the rest of the application database-agnostic.
+    sqlx::any::install_default_drivers();
+    let database_url = config.connect_database_url();
+    let sqlite = config.database_kind == DatabaseKind::Sqlite;
+    let pool = AnyPoolOptions::new()
         .min_connections(config.database_min_connections)
         .max_connections(config.database_max_connections)
         .acquire_timeout(Duration::from_secs(config.database_acquire_timeout_seconds))
-        .connect(&config.database_url)
+        .after_connect(move |connection, _| {
+            Box::pin(async move {
+                if sqlite {
+                    sqlx::query("PRAGMA foreign_keys = ON")
+                        .execute(&mut *connection)
+                        .await?;
+                }
+                Ok(())
+            })
+        })
+        .connect(&database_url)
         .await
-        .context("connecting to PostgreSQL")?;
+        .with_context(|| format!("connecting to {}", config.database_kind.as_str()))?;
 
     if config.run_migrations {
-        info!("running database migrations");
-        sqlx::migrate!("./migrations")
-            .run(&pool)
-            .await
-            .context("running migrations")?;
+        info!(database = config.database_kind.as_str(), "running database migrations");
+        let migration_result = match config.database_kind {
+            DatabaseKind::Postgres => sqlx::migrate!("./migrations").run(&pool).await,
+            DatabaseKind::Sqlite => sqlx::migrate!("./migrations/sqlite").run(&pool).await,
+        };
+        migration_result.context("running database migrations")?;
     }
 
     db::bootstrap_admin(&pool, &config)
@@ -51,6 +70,7 @@ async fn main() -> anyhow::Result<()> {
     info!(
         address = %config.http_addr,
         environment = %config.app_env,
+        database = config.database_kind.as_str(),
         public_base_url = config.public_base_url.as_deref().unwrap_or(""),
         "Axum-web licensing platform started"
     );

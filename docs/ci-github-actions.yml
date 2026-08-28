@@ -23,6 +23,7 @@ jobs:
           --health-timeout 3s
           --health-retries 20
     env:
+      DATABASE_DRIVER: postgres
       DATABASE_URL: postgres://axum_web:axum_web@localhost:5432/axum_web
       JWT_SECRET: ci-jwt-secret-change-before-production-1234567890
       LICENSE_KEY_PEPPER: ci-license-pepper-change-before-production-12345

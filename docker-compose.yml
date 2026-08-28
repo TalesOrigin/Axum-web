@@ -28,6 +28,8 @@ services:
     environment:
       APP_ENV: development
       HTTP_ADDR: 0.0.0.0:3000
+      # The Compose setup intentionally exercises the PostgreSQL configuration.
+      DATABASE_DRIVER: postgres
       # Password @F9*a8#r6, percent-encoded: @ -> %40, * -> %2A, # -> %23
       DATABASE_URL: postgres://axum_web:%40F9%2Aa8%23r6@postgres:5432/axum_web
       JWT_SECRET: dev-compose-jwt-secret-change-before-production

@@ -43,15 +43,22 @@ pub async fn require_user(state: &AppState, headers: &HeaderMap) -> AppResult<Au
     .map_err(|_| AppError::Unauthorized)?;
 
     let user_id = Uuid::parse_str(&token_data.claims.sub).map_err(|_| AppError::Unauthorized)?;
-
-    let user = sqlx::query_as::<_, User>(
+    let id = state.config.uuid_cast("$1");
+    let user = sqlx::query_as::<_, User>(&format!(
         r#"
-        SELECT id, email, password_hash, role, is_active, created_at, updated_at
+        SELECT
+            CAST(id AS TEXT) AS id,
+            email,
+            password_hash,
+            role,
+            is_active,
+            CAST(created_at AS TEXT) AS created_at,
+            CAST(updated_at AS TEXT) AS updated_at
         FROM users
-        WHERE id = $1
+        WHERE id = {id}
         "#,
-    )
-    .bind(user_id)
+    ))
+    .bind(user_id.to_string())
     .fetch_optional(&state.pool)
     .await?
     .ok_or(AppError::Unauthorized)?;

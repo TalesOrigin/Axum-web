@@ -43,12 +43,19 @@ pub async fn login(
 
     let user = sqlx::query_as::<_, User>(
         r#"
-        SELECT id, email, password_hash, role, is_active, created_at, updated_at
+        SELECT
+            CAST(id AS TEXT) AS id,
+            email,
+            password_hash,
+            role,
+            is_active,
+            CAST(created_at AS TEXT) AS created_at,
+            CAST(updated_at AS TEXT) AS updated_at
         FROM users
         WHERE lower(email) = lower($1)
         "#,
     )
-    .bind(payload.email.trim())
+    .bind(payload.email.trim().to_string())
     .fetch_optional(&state.pool)
     .await?
     .ok_or(AppError::Unauthorized)?;
@@ -61,6 +68,7 @@ pub async fn login(
 
     let _ = db::audit_event(
         &state.pool,
+        &state.config,
         Some(user.id),
         Some(user.id),
         None,

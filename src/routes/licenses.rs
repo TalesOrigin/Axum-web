@@ -10,6 +10,7 @@ use axum::{extract::State, http::HeaderMap, Json};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sqlx::{Any, Transaction};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -63,7 +64,9 @@ pub async fn verify_license(
     payload.validate()?;
 
     if normalize_license_key(&payload.license_key).is_empty() || payload.device_id.trim().is_empty() {
-        return Err(AppError::BadRequest("license_key and device_id are required".to_string()));
+        return Err(AppError::BadRequest(
+            "license_key and device_id are required".to_string(),
+        ));
     }
 
     let key_hash = hash_license_key(&state.config.license_key_pepper, &payload.license_key)
@@ -73,22 +76,38 @@ pub async fn verify_license(
     let heartbeat_window = state.config.license_heartbeat_window_seconds;
 
     let mut tx = state.pool.begin().await?;
-
-    let Some(license) = sqlx::query_as::<_, LicenseKey>(
+    let lock = state.config.row_lock_clause();
+    let Some(license) = sqlx::query_as::<_, LicenseKey>(&format!(
         r#"
-        SELECT id, key_prefix, key_hash, owner_id, created_by, status, max_devices,
-               expires_at, notes, metadata, last_verified_at, created_at, updated_at
+        SELECT
+            CAST(id AS TEXT) AS id,
+            key_prefix,
+            key_hash,
+            CAST(owner_id AS TEXT) AS owner_id,
+            CAST(created_by AS TEXT) AS created_by,
+            status,
+            max_devices,
+            CAST(expires_at AS TEXT) AS expires_at,
+            notes,
+            CAST(metadata AS TEXT) AS metadata,
+            CAST(last_verified_at AS TEXT) AS last_verified_at,
+            CAST(created_at AS TEXT) AS created_at,
+            CAST(updated_at AS TEXT) AS updated_at
         FROM license_keys
         WHERE key_hash = $1
-        FOR UPDATE
+        {lock}
         "#,
-    )
+    ))
     .bind(&key_hash)
     .fetch_optional(&mut *tx)
     .await?
     else {
         tx.commit().await?;
-        return Ok(Json(denied("invalid_key", "license key was not found", heartbeat_window)));
+        return Ok(Json(denied(
+            "invalid_key",
+            "license key was not found",
+            heartbeat_window,
+        )));
     };
 
     if license.status != LICENSE_ACTIVE {
@@ -115,16 +134,27 @@ pub async fn verify_license(
         }
     }
 
-    let existing_activation = sqlx::query_as::<_, DeviceActivation>(
+    let license_id = state.config.uuid_cast("$1");
+    let existing_activation = sqlx::query_as::<_, DeviceActivation>(&format!(
         r#"
-        SELECT id, license_id, device_id_hash, device_label, app_id, app_version,
-               ip_address, user_agent, last_seen_at, created_at, revoked_at
+        SELECT
+            CAST(id AS TEXT) AS id,
+            CAST(license_id AS TEXT) AS license_id,
+            device_id_hash,
+            device_label,
+            app_id,
+            app_version,
+            ip_address,
+            user_agent,
+            CAST(last_seen_at AS TEXT) AS last_seen_at,
+            CAST(created_at AS TEXT) AS created_at,
+            CAST(revoked_at AS TEXT) AS revoked_at
         FROM device_activations
-        WHERE license_id = $1 AND device_id_hash = $2
-        FOR UPDATE
+        WHERE license_id = {license_id} AND device_id_hash = $2
+        {lock}
         "#,
-    )
-    .bind(license.id)
+    ))
+    .bind(license.id.to_string())
     .bind(&device_hash)
     .fetch_optional(&mut *tx)
     .await?;
@@ -146,6 +176,7 @@ pub async fn verify_license(
         if !activation_is_current {
             let other_active_devices = active_device_count_excluding(
                 &mut tx,
+                &state.config,
                 license.id,
                 activation.id,
                 heartbeat_window,
@@ -164,16 +195,22 @@ pub async fn verify_license(
             }
         }
 
-        sqlx::query(
+        let activation_id = state.config.uuid_cast("$1");
+        let license_id = state.config.uuid_cast("$2");
+        sqlx::query(&format!(
             r#"
             UPDATE device_activations
-            SET last_seen_at = NOW(), device_label = $3, app_id = $4, app_version = $5,
-                ip_address = $6, user_agent = $7
-            WHERE id = $1 AND license_id = $2
+            SET last_seen_at = CURRENT_TIMESTAMP,
+                device_label = $3,
+                app_id = $4,
+                app_version = $5,
+                ip_address = $6,
+                user_agent = $7
+            WHERE id = {activation_id} AND license_id = {license_id}
             "#,
-        )
-        .bind(activation.id)
-        .bind(license.id)
+        ))
+        .bind(activation.id.to_string())
+        .bind(license.id.to_string())
         .bind(trim_optional(payload.device_label.as_deref()))
         .bind(trim_optional(payload.app_id.as_deref()))
         .bind(trim_optional(payload.app_version.as_deref()))
@@ -182,18 +219,23 @@ pub async fn verify_license(
         .execute(&mut *tx)
         .await?;
 
-        sqlx::query("UPDATE license_keys SET last_verified_at = NOW() WHERE id = $1")
-            .bind(license.id)
-            .execute(&mut *tx)
-            .await?;
+        let license_id = state.config.uuid_cast("$1");
+        sqlx::query(&format!(
+            "UPDATE license_keys SET last_verified_at = CURRENT_TIMESTAMP WHERE id = {license_id}"
+        ))
+        .bind(license.id.to_string())
+        .execute(&mut *tx)
+        .await?;
 
-        let active_devices = active_device_count(&mut tx, license.id, heartbeat_window).await?;
+        let active_devices =
+            active_device_count(&mut tx, &state.config, license.id, heartbeat_window).await?;
         tx.commit().await?;
 
         return Ok(Json(allowed(&license, active_devices, heartbeat_window)));
     }
 
-    let active_devices = active_device_count(&mut tx, license.id, heartbeat_window).await?;
+    let active_devices =
+        active_device_count(&mut tx, &state.config, license.id, heartbeat_window).await?;
     if active_devices >= i64::from(license.max_devices) {
         tx.commit().await?;
         return Ok(Json(denied_with_license(
@@ -205,16 +247,21 @@ pub async fn verify_license(
         )));
     }
 
-    sqlx::query(
+    let activation_id = Uuid::new_v4();
+    let activation_id_param = state.config.uuid_cast("$1");
+    let license_id_param = state.config.uuid_cast("$2");
+    sqlx::query(&format!(
         r#"
         INSERT INTO device_activations (
-            license_id, device_id_hash, device_label, app_id, app_version,
+            id, license_id, device_id_hash, device_label, app_id, app_version,
             ip_address, user_agent, last_seen_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+        VALUES ({activation_id_param}, {license_id_param}, $3, $4, $5, $6, $7, $8,
+                CURRENT_TIMESTAMP)
         "#,
-    )
-    .bind(license.id)
+    ))
+    .bind(activation_id.to_string())
+    .bind(license.id.to_string())
     .bind(&device_hash)
     .bind(trim_optional(payload.device_label.as_deref()))
     .bind(trim_optional(payload.app_id.as_deref()))
@@ -224,16 +271,21 @@ pub async fn verify_license(
     .execute(&mut *tx)
     .await?;
 
-    sqlx::query("UPDATE license_keys SET last_verified_at = NOW() WHERE id = $1")
-        .bind(license.id)
-        .execute(&mut *tx)
-        .await?;
+    let license_id = state.config.uuid_cast("$1");
+    sqlx::query(&format!(
+        "UPDATE license_keys SET last_verified_at = CURRENT_TIMESTAMP WHERE id = {license_id}"
+    ))
+    .bind(license.id.to_string())
+    .execute(&mut *tx)
+    .await?;
 
-    let active_devices = active_device_count(&mut tx, license.id, heartbeat_window).await?;
+    let active_devices =
+        active_device_count(&mut tx, &state.config, license.id, heartbeat_window).await?;
     tx.commit().await?;
 
     let _ = db::audit_event(
         &state.pool,
+        &state.config,
         None,
         license.owner_id,
         Some(license.id),
@@ -260,20 +312,25 @@ pub async fn release_license(
         .map_err(AppError::Internal)?;
 
     let stale_seconds = state.config.license_heartbeat_window_seconds + 1;
-    let result = sqlx::query(
+    let stale_at = Utc::now() - Duration::seconds(stale_seconds);
+    let stale_at_param = state.config.timestamp_cast("$3");
+    let result = sqlx::query(&format!(
         r#"
-        UPDATE device_activations da
-        SET last_seen_at = NOW() - make_interval(secs => $3::int)
-        FROM license_keys lk
-        WHERE lk.id = da.license_id
-          AND lk.key_hash = $1
-          AND da.device_id_hash = $2
-          AND da.revoked_at IS NULL
+        UPDATE device_activations
+        SET last_seen_at = {stale_at_param}
+        WHERE id IN (
+            SELECT da.id
+            FROM device_activations da
+            JOIN license_keys lk ON lk.id = da.license_id
+            WHERE lk.key_hash = $1
+              AND da.device_id_hash = $2
+              AND da.revoked_at IS NULL
+        )
         "#,
-    )
+    ))
     .bind(key_hash)
     .bind(device_hash)
-    .bind(stale_seconds as i32)
+    .bind(stale_at.to_rfc3339())
     .execute(&state.pool)
     .await?;
 
@@ -284,21 +341,25 @@ pub async fn release_license(
 }
 
 async fn active_device_count(
-    tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    tx: &mut Transaction<'_, Any>,
+    config: &crate::config::Config,
     license_id: Uuid,
     heartbeat_window_seconds: i64,
 ) -> AppResult<i64> {
-    let count = sqlx::query_scalar::<_, i64>(
+    let active_since = config.active_since("last_seen_at", "$2");
+    let cutoff = Utc::now() - Duration::seconds(heartbeat_window_seconds);
+    let count = sqlx::query_scalar::<_, i64>(&format!(
         r#"
         SELECT COUNT(*)
         FROM device_activations
-        WHERE license_id = $1
+        WHERE license_id = {license_id_param}
           AND revoked_at IS NULL
-          AND last_seen_at > NOW() - make_interval(secs => $2::int)
+          AND {active_since}
         "#,
-    )
-    .bind(license_id)
-    .bind(heartbeat_window_seconds as i32)
+        license_id_param = config.uuid_cast("$1"),
+    ))
+    .bind(license_id.to_string())
+    .bind(cutoff.to_rfc3339())
     .fetch_one(&mut **tx)
     .await?;
 
@@ -306,24 +367,29 @@ async fn active_device_count(
 }
 
 async fn active_device_count_excluding(
-    tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    tx: &mut Transaction<'_, Any>,
+    config: &crate::config::Config,
     license_id: Uuid,
     excluded_activation_id: Uuid,
     heartbeat_window_seconds: i64,
 ) -> AppResult<i64> {
-    let count = sqlx::query_scalar::<_, i64>(
+    let license_id_param = config.uuid_cast("$1");
+    let excluded_id_param = config.uuid_cast("$2");
+    let active_since = config.active_since("last_seen_at", "$3");
+    let cutoff = Utc::now() - Duration::seconds(heartbeat_window_seconds);
+    let count = sqlx::query_scalar::<_, i64>(&format!(
         r#"
         SELECT COUNT(*)
         FROM device_activations
-        WHERE license_id = $1
-          AND id <> $2
+        WHERE license_id = {license_id_param}
+          AND id <> {excluded_id_param}
           AND revoked_at IS NULL
-          AND last_seen_at > NOW() - make_interval(secs => $3::int)
+          AND {active_since}
         "#,
-    )
-    .bind(license_id)
-    .bind(excluded_activation_id)
-    .bind(heartbeat_window_seconds as i32)
+    ))
+    .bind(license_id.to_string())
+    .bind(excluded_activation_id.to_string())
+    .bind(cutoff.to_rfc3339())
     .fetch_one(&mut **tx)
     .await?;
 

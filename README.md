@@ -8,7 +8,7 @@ Enterprise-grade Rust/Axum licensing platform for administrators, resellers, lic
 - **Reseller panel/API** so sellers can log in, request key batches from the main admin, list assigned keys, and manage the lifecycle of their own keys.
 - **Licensing verification system** that verifies license keys with a unique device ID, tracks expiry, and enforces the maximum number of simultaneously active devices per key.
 - **Secure transport posture** with JWT authentication, Argon2 password hashing, HMAC-hashed license/device identifiers at rest, CORS allowlisting, security headers, request-size limits, timeouts, and audit logs.
-- **Production scalability** through stateless HTTP nodes, PostgreSQL connection pooling, transactional device-limit enforcement, health checks, Docker, Kubernetes manifests, CI, JSON logs, and environment-driven configuration.
+- **Production scalability** through stateless HTTP nodes, SQLx connection pooling, transactional device-limit enforcement, health checks, Docker, Kubernetes manifests, CI, JSON logs, and environment-driven configuration. Development can use a local SQLite file, while PostgreSQL remains fully supported for production and scale.
 
 ## Architecture
 
@@ -16,27 +16,37 @@ Enterprise-grade Rust/Axum licensing platform for administrators, resellers, lic
 Browser/API clients
     │
     ▼
-Axum-web stateless Rust service ─── PostgreSQL
-    │                                ├─ users/admin/resellers
-    │                                ├─ license keys (HMAC hashes only)
-    │                                ├─ device activations / heartbeats
-    │                                ├─ reseller key requests
-    │                                └─ audit events
+Axum-web stateless Rust service ─── SQLite (development)
+    │                             └── PostgreSQL (production/scale)
+                                     ├─ users/admin/resellers
+                                     ├─ license keys (HMAC hashes only)
+                                     ├─ device activations / heartbeats
+                                     ├─ reseller key requests
+                                     └─ audit events
     ▼
 Static admin/reseller panel served from /static fallback
 ```
 
 License keys are only returned once at generation/approval time. The database stores `key_hash` using `LICENSE_KEY_PEPPER`; device IDs are stored as HMAC hashes using `DEVICE_ID_PEPPER`. Keep these peppers stable and stored in a secret manager; rotating them without a migration invalidates existing keys/devices.
 
-## Quick start with Docker Compose
+## Quick start
+
+The default development configuration uses SQLite, so no database server is needed:
 
 ```bash
 cp .env.example .env
-# For local compose the provided dev values are enough. For production change every secret.
+cargo run
+```
+
+Open <http://localhost:3000>. The SQLite database is created at `data/axum_web.db`.
+
+For the containerized PostgreSQL setup, use the supplied Compose file:
+
+```bash
 docker compose up --build
 ```
 
-Open <http://localhost:3000>.
+The Compose app is configured for PostgreSQL and starts the local PostgreSQL 16 service for you. For production change every secret.
 
 Development bootstrap credentials unless overridden:
 
@@ -63,7 +73,8 @@ Important values:
 
 | Variable | Purpose |
 | --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string. |
+| `DATABASE_DRIVER` | Selects `sqlite` or `postgres`; it must match the `DATABASE_URL` scheme. `DATABASE_TYPE` is accepted as an alias. |
+| `DATABASE_URL` | SQLite file URL (development) or PostgreSQL connection string. The driver is inferred from its scheme if `DATABASE_DRIVER` is omitted. |
 | `JWT_SECRET` | HS256 JWT signing secret. Required and length-checked in production. |
 | `LICENSE_KEY_PEPPER` | HMAC secret for hashing license keys at rest. |
 | `DEVICE_ID_PEPPER` | HMAC secret for hashing device identifiers at rest. |
@@ -180,20 +191,19 @@ More examples are in [`docs/api.http`](docs/api.http).
 
 ## Scaling notes
 
-- The service is stateless; scale horizontally behind a load balancer.
-- Device-limit enforcement is serialized per license using PostgreSQL transactions and `FOR UPDATE` row locks, preventing race conditions when many devices verify the same key concurrently.
+- The service is stateless; scale horizontally behind a load balancer when using PostgreSQL.
+- Device-limit enforcement is serialized per license using PostgreSQL transactions and `FOR UPDATE` row locks, preventing race conditions when many devices verify the same key concurrently. SQLite is intended for local development and single-instance deployments.
 - `LICENSE_HEARTBEAT_WINDOW_SECONDS` controls simultaneous-device behavior. A shorter window frees abandoned devices faster but requires more frequent client heartbeats.
 - Use read replicas only for analytics/reporting. License verification must write to the primary DB.
 - The supplied Kubernetes manifest includes readiness/liveness probes, non-root containers, read-only filesystem, resource limits, and HPA defaults.
 
 ## Local development without Docker
 
-Requires Rust stable and PostgreSQL 16+.
+Requires Rust stable. SQLite is the default and is created automatically. PostgreSQL 16+ is supported when selected in configuration.
 
 ```bash
 cp .env.example .env
-# edit DATABASE_URL and secrets for your machine
-# make sure the database exists first — see "Database migrations" below
+# edit DATABASE_DRIVER and DATABASE_URL if you want PostgreSQL instead of SQLite
 cargo run
 ```
 
@@ -207,13 +217,13 @@ cargo test --all-targets
 
 ## Database migrations
 
-The schema lives in [`migrations/`](migrations/) and is managed by [sqlx-migrate](https://docs.rs/sqlx/latest/sqlx/migrate/index.html). Migrations apply in filename order, and the database keeps a `_sqlx_migrations` table recording which versions have already run — each migration is applied exactly once.
+The schema lives in [`migrations/`](migrations/) and is managed by [sqlx-migrate](https://docs.rs/sqlx/latest/sqlx/migrate/index.html). There is one migration set per supported database: PostgreSQL uses [`migrations/`](migrations/) and SQLite uses [`migrations/sqlite/`](migrations/sqlite/). Migrations apply in filename order, and the database keeps a `_sqlx_migrations` table recording which versions have already run — each migration is applied exactly once.
 
 ### Running migrations
 
 Migrations run **automatically on app startup** when `RUN_MIGRATIONS=true` (the default): the first `cargo run` or container start applies all pending migrations, bootstraps the admin user, and only then starts serving HTTP.
 
-The one manual prerequisite is that the **database itself exists** — PostgreSQL never creates databases on demand. Create the role and database once before the first run:
+For SQLite, the database file and its parent directory are created automatically. When using PostgreSQL, the one manual prerequisite is that the **database itself exists** — PostgreSQL never creates databases on demand. Create the role and database once before the first run:
 
 ```bash
 psql -h localhost -U postgres -c "CREATE ROLE axum_web LOGIN PASSWORD '<your-password>';"
@@ -228,15 +238,21 @@ You can also apply migrations explicitly, without starting the server:
 
 ```bash
 cargo install sqlx-cli
+export DATABASE_DRIVER=postgres
 export DATABASE_URL='postgres://axum_web:<url-percent-encoded-password>@localhost:5432/axum_web'
-sqlx migrate run      # apply pending migrations
-sqlx migrate info     # show which versions are applied
+sqlx migrate run --source migrations      # apply PostgreSQL migrations
+sqlx migrate info --source migrations
+
+# SQLite migrations can be applied explicitly as well:
+export DATABASE_DRIVER=sqlite
+export DATABASE_URL='sqlite://./data/axum_web.db?mode=rwc'
+sqlx migrate run --source migrations/sqlite
 ```
 
 ### Adding a new migration
 
-1. Create the next numbered file, e.g. `migrations/0002_add_something.sql`. Migrations apply in filename order. Never edit a file that has already been applied — add a new one instead (the checksum is stored in `_sqlx_migrations`).
-2. **Rebuild.** `sqlx::migrate!` in `src/main.rs` embeds the `migrations/` directory into the binary at *compile time*, so a new or changed file has no effect until you run `cargo build` / rebuild the Docker image.
+1. Create the next numbered file in **both** migration directories, e.g. `migrations/0002_add_something.sql` and `migrations/sqlite/0002_add_something.sql`. Keep the schemas equivalent, using each database dialect where necessary. Migrations apply in filename order. Never edit a file that has already been applied — add a new one instead (the checksum is stored in `_sqlx_migrations`).
+2. **Rebuild.** The two `sqlx::migrate!` calls in `src/main.rs` embed the selected migration directory into the binary at *compile time*, so a new or changed file has no effect until you run `cargo build` / rebuild the Docker image.
 3. Start the app (or run `sqlx migrate run`) to apply it.
 
 Verify after startup:
@@ -244,6 +260,9 @@ Verify after startup:
 ```bash
 psql -h localhost -U axum_web -d axum_web -c "\dt"
 psql -h localhost -U axum_web -d axum_web -c "SELECT version, description, success FROM _sqlx_migrations ORDER BY version;"
+
+# SQLite equivalent:
+sqlite3 ./data/axum_web.db ".tables"
 ```
 
 ## Repository layout
@@ -255,6 +274,7 @@ src/
   routes/          Auth, admin, reseller, license verification, health endpoints
   services/        Password/JWT and crypto helpers
 migrations/        PostgreSQL schema
+  sqlite/           SQLite schema
 docker-compose.yml Local PostgreSQL + app
 Dockerfile         Production container build
 k8s/               Kubernetes deployment reference

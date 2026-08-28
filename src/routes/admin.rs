@@ -116,14 +116,21 @@ pub async fn list_users(
 
     let users = sqlx::query_as::<_, User>(
         r#"
-        SELECT id, email, password_hash, role, is_active, created_at, updated_at
+        SELECT
+            CAST(id AS TEXT) AS id,
+            email,
+            password_hash,
+            role,
+            is_active,
+            CAST(created_at AS TEXT) AS created_at,
+            CAST(updated_at AS TEXT) AS updated_at
         FROM users
-        WHERE ($1::text IS NULL OR role = $1)
+        WHERE ($1 IS NULL OR role = $1)
         ORDER BY created_at DESC
         LIMIT $2 OFFSET $3
         "#,
     )
-    .bind(query.role.as_deref())
+    .bind(query.role.clone())
     .bind(query.pagination.limit())
     .bind(query.pagination.offset())
     .fetch_all(&state.pool)
@@ -142,13 +149,23 @@ pub async fn create_reseller(
     security::require_admin(&admin)?;
 
     let password_hash = hash_password(&payload.password).map_err(AppError::Internal)?;
-    let reseller = sqlx::query_as::<_, User>(
+    let reseller_id = Uuid::new_v4();
+    let id = state.config.uuid_cast("$1");
+    let reseller = sqlx::query_as::<_, User>(&format!(
         r#"
-        INSERT INTO users (email, password_hash, role, is_active)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id, email, password_hash, role, is_active, created_at, updated_at
+        INSERT INTO users (id, email, password_hash, role, is_active)
+        VALUES ({id}, $2, $3, $4, $5)
+        RETURNING
+            CAST(id AS TEXT) AS id,
+            email,
+            password_hash,
+            role,
+            is_active,
+            CAST(created_at AS TEXT) AS created_at,
+            CAST(updated_at AS TEXT) AS updated_at
         "#,
-    )
+    ))
+    .bind(reseller_id.to_string())
     .bind(payload.email.trim().to_ascii_lowercase())
     .bind(password_hash)
     .bind(ROLE_RESELLER)
@@ -158,6 +175,7 @@ pub async fn create_reseller(
 
     let _ = db::audit_event(
         &state.pool,
+        &state.config,
         Some(admin.id),
         Some(reseller.id),
         None,
@@ -187,21 +205,30 @@ pub async fn set_user_status(
         ));
     }
 
-    let user = sqlx::query_as::<_, User>(
+    let user_id = state.config.uuid_cast("$1");
+    let user = sqlx::query_as::<_, User>(&format!(
         r#"
         UPDATE users
         SET is_active = $2
-        WHERE id = $1
-        RETURNING id, email, password_hash, role, is_active, created_at, updated_at
+        WHERE id = {user_id}
+        RETURNING
+            CAST(id AS TEXT) AS id,
+            email,
+            password_hash,
+            role,
+            is_active,
+            CAST(created_at AS TEXT) AS created_at,
+            CAST(updated_at AS TEXT) AS updated_at
         "#,
-    )
-    .bind(id)
+    ))
+    .bind(id.to_string())
     .bind(payload.is_active)
     .fetch_one(&state.pool)
     .await?;
 
     let _ = db::audit_event(
         &state.pool,
+        &state.config,
         Some(admin.id),
         Some(user.id),
         None,
@@ -228,39 +255,41 @@ pub async fn list_licenses(
         validate_license_status(status)?;
     }
 
-    let licenses = sqlx::query_as::<_, LicenseWithOwner>(
+    let owner_id = state.config.uuid_cast("$1");
+    let active_since = state.config.active_since("da.last_seen_at", "$3");
+    let cutoff = Utc::now() - Duration::seconds(state.config.license_heartbeat_window_seconds);
+    let licenses = sqlx::query_as::<_, LicenseWithOwner>(&format!(
         r#"
         SELECT
-            lk.id,
+            CAST(lk.id AS TEXT) AS id,
             lk.key_prefix,
-            lk.owner_id,
+            CAST(lk.owner_id AS TEXT) AS owner_id,
             owner.email AS owner_email,
-            lk.created_by,
+            CAST(lk.created_by AS TEXT) AS created_by,
             lk.status,
             lk.max_devices,
-            lk.expires_at,
+            CAST(lk.expires_at AS TEXT) AS expires_at,
             lk.notes,
-            lk.metadata,
-            lk.last_verified_at,
-            COUNT(da.id) FILTER (
-                WHERE da.revoked_at IS NULL
-                  AND da.last_seen_at > NOW() - make_interval(secs => $3::int)
-            ) AS active_devices,
-            lk.created_at,
-            lk.updated_at
+            CAST(lk.metadata AS TEXT) AS metadata,
+            CAST(lk.last_verified_at AS TEXT) AS last_verified_at,
+            COUNT(CASE
+                WHEN da.revoked_at IS NULL AND {active_since} THEN 1
+            END) AS active_devices,
+            CAST(lk.created_at AS TEXT) AS created_at,
+            CAST(lk.updated_at AS TEXT) AS updated_at
         FROM license_keys lk
         LEFT JOIN users owner ON owner.id = lk.owner_id
         LEFT JOIN device_activations da ON da.license_id = lk.id
-        WHERE ($1::uuid IS NULL OR lk.owner_id = $1)
-          AND ($2::text IS NULL OR lk.status = $2)
+        WHERE ({owner_id} IS NULL OR lk.owner_id = {owner_id})
+          AND ($2 IS NULL OR lk.status = $2)
         GROUP BY lk.id, owner.email
         ORDER BY lk.created_at DESC
         LIMIT $4 OFFSET $5
         "#,
-    )
-    .bind(query.owner_id)
-    .bind(query.status.as_deref())
-    .bind(state.config.license_heartbeat_window_seconds as i32)
+    ))
+    .bind(query.owner_id.map(|value| value.to_string()))
+    .bind(query.status.clone())
+    .bind(cutoff.to_rfc3339())
     .bind(query.pagination.limit())
     .bind(query.pagination.offset())
     .fetch_all(&state.pool)
@@ -282,6 +311,7 @@ pub async fn generate_licenses(
 
     let _ = db::audit_event(
         &state.pool,
+        &state.config,
         Some(admin.id),
         payload.owner_id,
         None,
@@ -306,22 +336,36 @@ pub async fn set_license_status(
     security::require_admin(&admin)?;
     validate_license_status(&payload.status)?;
 
-    let license = sqlx::query_as::<_, LicenseKey>(
+    let license_id = state.config.uuid_cast("$1");
+    let license = sqlx::query_as::<_, LicenseKey>(&format!(
         r#"
         UPDATE license_keys
         SET status = $2
-        WHERE id = $1
-        RETURNING id, key_prefix, key_hash, owner_id, created_by, status, max_devices,
-                  expires_at, notes, metadata, last_verified_at, created_at, updated_at
+        WHERE id = {license_id}
+        RETURNING
+            CAST(id AS TEXT) AS id,
+            key_prefix,
+            key_hash,
+            CAST(owner_id AS TEXT) AS owner_id,
+            CAST(created_by AS TEXT) AS created_by,
+            status,
+            max_devices,
+            CAST(expires_at AS TEXT) AS expires_at,
+            notes,
+            CAST(metadata AS TEXT) AS metadata,
+            CAST(last_verified_at AS TEXT) AS last_verified_at,
+            CAST(created_at AS TEXT) AS created_at,
+            CAST(updated_at AS TEXT) AS updated_at
         "#,
-    )
-    .bind(id)
+    ))
+    .bind(id.to_string())
     .bind(payload.status.as_str())
     .fetch_one(&state.pool)
     .await?;
 
     let _ = db::audit_event(
         &state.pool,
+        &state.config,
         Some(admin.id),
         license.owner_id,
         Some(license.id),
@@ -348,22 +392,33 @@ pub async fn list_key_requests(
         validate_request_status(status)?;
     }
 
-    let requests = sqlx::query_as::<_, LicenseRequest>(
+    let reseller_id = state.config.uuid_cast("$2");
+    let requests = sqlx::query_as::<_, LicenseRequest>(&format!(
         r#"
         SELECT
-            lr.id, lr.reseller_id, reseller.email AS reseller_email, lr.quantity,
-            lr.max_devices, lr.ttl_days, lr.note, lr.status, lr.reviewed_by,
-            lr.reviewed_at, lr.admin_note, lr.created_at, lr.updated_at
+            CAST(lr.id AS TEXT) AS id,
+            CAST(lr.reseller_id AS TEXT) AS reseller_id,
+            reseller.email AS reseller_email,
+            lr.quantity,
+            lr.max_devices,
+            lr.ttl_days,
+            lr.note,
+            lr.status,
+            CAST(lr.reviewed_by AS TEXT) AS reviewed_by,
+            CAST(lr.reviewed_at AS TEXT) AS reviewed_at,
+            lr.admin_note,
+            CAST(lr.created_at AS TEXT) AS created_at,
+            CAST(lr.updated_at AS TEXT) AS updated_at
         FROM license_requests lr
         JOIN users reseller ON reseller.id = lr.reseller_id
-        WHERE ($1::text IS NULL OR lr.status = $1)
-          AND ($2::uuid IS NULL OR lr.reseller_id = $2)
+        WHERE ($1 IS NULL OR lr.status = $1)
+          AND ({reseller_id} IS NULL OR lr.reseller_id = {reseller_id})
         ORDER BY lr.created_at DESC
         LIMIT $3 OFFSET $4
         "#,
-    )
-    .bind(query.status.as_deref())
-    .bind(query.reseller_id)
+    ))
+    .bind(query.status.clone())
+    .bind(query.reseller_id.map(|value| value.to_string()))
     .bind(query.pagination.limit())
     .bind(query.pagination.offset())
     .fetch_all(&state.pool)
@@ -382,19 +437,30 @@ pub async fn approve_key_request(
     security::require_admin(&admin)?;
 
     let mut tx = state.pool.begin().await?;
-
-    let request = sqlx::query_as::<_, LicenseRequest>(
+    let request_id = state.config.uuid_cast("$1");
+    let lock = state.config.row_lock_clause();
+    let request = sqlx::query_as::<_, LicenseRequest>(&format!(
         r#"
         SELECT
-            lr.id, lr.reseller_id, NULL::text AS reseller_email, lr.quantity,
-            lr.max_devices, lr.ttl_days, lr.note, lr.status, lr.reviewed_by,
-            lr.reviewed_at, lr.admin_note, lr.created_at, lr.updated_at
+            CAST(lr.id AS TEXT) AS id,
+            CAST(lr.reseller_id AS TEXT) AS reseller_id,
+            CAST(NULL AS TEXT) AS reseller_email,
+            lr.quantity,
+            lr.max_devices,
+            lr.ttl_days,
+            lr.note,
+            lr.status,
+            CAST(lr.reviewed_by AS TEXT) AS reviewed_by,
+            CAST(lr.reviewed_at AS TEXT) AS reviewed_at,
+            lr.admin_note,
+            CAST(lr.created_at AS TEXT) AS created_at,
+            CAST(lr.updated_at AS TEXT) AS updated_at
         FROM license_requests lr
-        WHERE lr.id = $1
-        FOR UPDATE
+        WHERE lr.id = {request_id}
+        {lock}
         "#,
-    )
-    .bind(id)
+    ))
+    .bind(id.to_string())
     .fetch_optional(&mut *tx)
     .await?
     .ok_or_else(|| AppError::NotFound("key request not found".to_string()))?;
@@ -419,27 +485,47 @@ pub async fn approve_key_request(
             .map_err(AppError::Internal)?;
         let key_prefix = license_key_prefix(&license_key);
         let metadata = json!({"source": "reseller_request", "request_id": request.id});
+        let license_id = Uuid::new_v4();
+        let id = state.config.uuid_cast("$1");
+        let owner_id = state.config.uuid_cast("$4");
+        let created_by = state.config.uuid_cast("$5");
+        let expires_at_param = state.config.timestamp_cast("$8");
+        let metadata_param = state.config.json_cast("$10");
 
-        let license = sqlx::query_as::<_, LicenseKey>(
+        let license = sqlx::query_as::<_, LicenseKey>(&format!(
             r#"
             INSERT INTO license_keys (
-                key_prefix, key_hash, owner_id, created_by, status,
+                id, key_prefix, key_hash, owner_id, created_by, status,
                 max_devices, expires_at, notes, metadata
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            RETURNING id, key_prefix, key_hash, owner_id, created_by, status, max_devices,
-                      expires_at, notes, metadata, last_verified_at, created_at, updated_at
+            VALUES ({id}, $2, $3, {owner_id}, {created_by}, $6, $7,
+                    {expires_at_param}, $9, {metadata_param})
+            RETURNING
+                CAST(id AS TEXT) AS id,
+                key_prefix,
+                key_hash,
+                CAST(owner_id AS TEXT) AS owner_id,
+                CAST(created_by AS TEXT) AS created_by,
+                status,
+                max_devices,
+                CAST(expires_at AS TEXT) AS expires_at,
+                notes,
+                CAST(metadata AS TEXT) AS metadata,
+                CAST(last_verified_at AS TEXT) AS last_verified_at,
+                CAST(created_at AS TEXT) AS created_at,
+                CAST(updated_at AS TEXT) AS updated_at
             "#,
-        )
+        ))
+        .bind(license_id.to_string())
         .bind(&key_prefix)
         .bind(key_hash)
-        .bind(request.reseller_id)
-        .bind(admin.id)
+        .bind(request.reseller_id.to_string())
+        .bind(admin.id.to_string())
         .bind(LICENSE_ACTIVE)
         .bind(request.max_devices)
-        .bind(expires_at)
+        .bind(Some(expires_at.to_rfc3339()))
         .bind(request.note.clone())
-        .bind(metadata)
+        .bind(metadata.to_string())
         .fetch_one(&mut *tx)
         .await?;
 
@@ -454,16 +540,19 @@ pub async fn approve_key_request(
         });
     }
 
-    sqlx::query(
+    let request_id = state.config.uuid_cast("$1");
+    let reviewed_by = state.config.uuid_cast("$3");
+    sqlx::query(&format!(
         r#"
         UPDATE license_requests
-        SET status = $2, reviewed_by = $3, reviewed_at = NOW(), admin_note = $4
-        WHERE id = $1
+        SET status = $2, reviewed_by = {reviewed_by},
+            reviewed_at = CURRENT_TIMESTAMP, admin_note = $4
+        WHERE id = {request_id}
         "#,
-    )
-    .bind(request.id)
+    ))
+    .bind(request.id.to_string())
     .bind(REQUEST_APPROVED)
-    .bind(admin.id)
+    .bind(admin.id.to_string())
     .bind(payload.admin_note)
     .execute(&mut *tx)
     .await?;
@@ -472,6 +561,7 @@ pub async fn approve_key_request(
 
     let _ = db::audit_event(
         &state.pool,
+        &state.config,
         Some(admin.id),
         Some(request.reseller_id),
         None,
@@ -496,18 +586,30 @@ pub async fn reject_key_request(
     security::require_admin(&admin)?;
 
     let mut tx = state.pool.begin().await?;
-    let request = sqlx::query_as::<_, LicenseRequest>(
+    let request_id = state.config.uuid_cast("$1");
+    let lock = state.config.row_lock_clause();
+    let request = sqlx::query_as::<_, LicenseRequest>(&format!(
         r#"
         SELECT
-            lr.id, lr.reseller_id, NULL::text AS reseller_email, lr.quantity,
-            lr.max_devices, lr.ttl_days, lr.note, lr.status, lr.reviewed_by,
-            lr.reviewed_at, lr.admin_note, lr.created_at, lr.updated_at
+            CAST(lr.id AS TEXT) AS id,
+            CAST(lr.reseller_id AS TEXT) AS reseller_id,
+            CAST(NULL AS TEXT) AS reseller_email,
+            lr.quantity,
+            lr.max_devices,
+            lr.ttl_days,
+            lr.note,
+            lr.status,
+            CAST(lr.reviewed_by AS TEXT) AS reviewed_by,
+            CAST(lr.reviewed_at AS TEXT) AS reviewed_at,
+            lr.admin_note,
+            CAST(lr.created_at AS TEXT) AS created_at,
+            CAST(lr.updated_at AS TEXT) AS updated_at
         FROM license_requests lr
-        WHERE lr.id = $1
-        FOR UPDATE
+        WHERE lr.id = {request_id}
+        {lock}
         "#,
-    )
-    .bind(id)
+    ))
+    .bind(id.to_string())
     .fetch_optional(&mut *tx)
     .await?
     .ok_or_else(|| AppError::NotFound("key request not found".to_string()))?;
@@ -516,27 +618,45 @@ pub async fn reject_key_request(
         return Err(AppError::Conflict("key request is already reviewed".to_string()));
     }
 
+    let request_id = state.config.uuid_cast("$1");
+    let reviewed_by = state.config.uuid_cast("$3");
+    sqlx::query(&format!(
+        r#"
+        UPDATE license_requests
+        SET status = $2, reviewed_by = {reviewed_by},
+            reviewed_at = CURRENT_TIMESTAMP, admin_note = $4
+        WHERE id = {request_id}
+        "#,
+    ))
+    .bind(request.id.to_string())
+    .bind(REQUEST_REJECTED)
+    .bind(admin.id.to_string())
+    .bind(payload.admin_note.clone())
+    .execute(&mut *tx)
+    .await?;
+
     let reviewed = sqlx::query_as::<_, LicenseRequest>(
         r#"
-        WITH updated AS (
-            UPDATE license_requests
-            SET status = $2, reviewed_by = $3, reviewed_at = NOW(), admin_note = $4
-            WHERE id = $1
-            RETURNING id, reseller_id, quantity, max_devices, ttl_days, note, status,
-                      reviewed_by, reviewed_at, admin_note, created_at, updated_at
-        )
-        SELECT updated.id, updated.reseller_id, reseller.email AS reseller_email,
-               updated.quantity, updated.max_devices, updated.ttl_days, updated.note,
-               updated.status, updated.reviewed_by, updated.reviewed_at,
-               updated.admin_note, updated.created_at, updated.updated_at
-        FROM updated
-        JOIN users reseller ON reseller.id = updated.reseller_id
+        SELECT
+            CAST(lr.id AS TEXT) AS id,
+            CAST(lr.reseller_id AS TEXT) AS reseller_id,
+            reseller.email AS reseller_email,
+            lr.quantity,
+            lr.max_devices,
+            lr.ttl_days,
+            lr.note,
+            lr.status,
+            CAST(lr.reviewed_by AS TEXT) AS reviewed_by,
+            CAST(lr.reviewed_at AS TEXT) AS reviewed_at,
+            lr.admin_note,
+            CAST(lr.created_at AS TEXT) AS created_at,
+            CAST(lr.updated_at AS TEXT) AS updated_at
+        FROM license_requests lr
+        JOIN users reseller ON reseller.id = lr.reseller_id
+        WHERE CAST(lr.id AS TEXT) = $1
         "#,
     )
-    .bind(request.id)
-    .bind(REQUEST_REJECTED)
-    .bind(admin.id)
-    .bind(payload.admin_note.clone())
+    .bind(request.id.to_string())
     .fetch_one(&mut *tx)
     .await?;
 
@@ -544,6 +664,7 @@ pub async fn reject_key_request(
 
     let _ = db::audit_event(
         &state.pool,
+        &state.config,
         Some(admin.id),
         Some(request.reseller_id),
         None,
@@ -579,14 +700,18 @@ async fn create_licenses_for_owner(
     }
 
     if let Some(owner_id) = owner_id {
-        let exists = sqlx::query_scalar::<_, bool>(
-            "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1 AND is_active = true)",
-        )
-        .bind(owner_id)
+        let owner = state.config.uuid_cast("$1");
+        let count: i64 = sqlx::query_scalar(&format!(
+            "SELECT COUNT(*) FROM users WHERE id = {owner} AND is_active = $2"
+        ))
+        .bind(owner_id.to_string())
+        .bind(true)
         .fetch_one(&state.pool)
         .await?;
-        if !exists {
-            return Err(AppError::BadRequest("owner_id must reference an active user".to_string()));
+        if count == 0 {
+            return Err(AppError::BadRequest(
+                "owner_id must reference an active user".to_string(),
+            ));
         }
     }
 
@@ -606,27 +731,47 @@ async fn create_licenses_for_owner(
         let key_hash = hash_license_key(&state.config.license_key_pepper, &license_key)
             .map_err(AppError::Internal)?;
         let key_prefix = license_key_prefix(&license_key);
+        let license_id = Uuid::new_v4();
+        let id = state.config.uuid_cast("$1");
+        let owner = state.config.uuid_cast("$4");
+        let creator = state.config.uuid_cast("$5");
+        let expires = state.config.timestamp_cast("$8");
+        let metadata_param = state.config.json_cast("$10");
 
-        let license = sqlx::query_as::<_, LicenseKey>(
+        let license = sqlx::query_as::<_, LicenseKey>(&format!(
             r#"
             INSERT INTO license_keys (
-                key_prefix, key_hash, owner_id, created_by, status,
+                id, key_prefix, key_hash, owner_id, created_by, status,
                 max_devices, expires_at, notes, metadata
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            RETURNING id, key_prefix, key_hash, owner_id, created_by, status, max_devices,
-                      expires_at, notes, metadata, last_verified_at, created_at, updated_at
+            VALUES ({id}, $2, $3, {owner}, {creator}, $6, $7,
+                    {expires}, $9, {metadata_param})
+            RETURNING
+                CAST(id AS TEXT) AS id,
+                key_prefix,
+                key_hash,
+                CAST(owner_id AS TEXT) AS owner_id,
+                CAST(created_by AS TEXT) AS created_by,
+                status,
+                max_devices,
+                CAST(expires_at AS TEXT) AS expires_at,
+                notes,
+                CAST(metadata AS TEXT) AS metadata,
+                CAST(last_verified_at AS TEXT) AS last_verified_at,
+                CAST(created_at AS TEXT) AS created_at,
+                CAST(updated_at AS TEXT) AS updated_at
             "#,
-        )
+        ))
+        .bind(license_id.to_string())
         .bind(&key_prefix)
         .bind(key_hash)
-        .bind(owner_id)
-        .bind(created_by)
+        .bind(owner_id.map(|value| value.to_string()))
+        .bind(created_by.to_string())
         .bind(LICENSE_ACTIVE)
         .bind(payload.max_devices)
-        .bind(expires_at)
+        .bind(expires_at.map(|value| value.to_rfc3339()))
         .bind(payload.notes.clone())
-        .bind(metadata.clone())
+        .bind(metadata.to_string())
         .fetch_one(&mut *tx)
         .await?;
 
